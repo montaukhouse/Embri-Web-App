@@ -279,7 +279,7 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
   <nav><div></div><button class="nav-back" onclick="goTo('home')">← back</button></nav>
   <div class="listen-content">
     <h2 class="page-title">Listen</h2>
-    <p class="page-sub" id="listenSub">1 free preview</p>
+    <p class="page-sub" id="listenSub">2 free previews</p>
     <div class="locked-notice" id="lockedNotice">
       <span onclick="goTo('store')">Buy the album</span> to unlock all 12 tracks.
     </div>
@@ -379,22 +379,22 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
 </div>
 <div class="toast" id="toast"></div>
 <script>
-let albumPurchased=false,currentItem=null,qty=1;
+let albumPurchased=localStorage.getItem('embri_album_purchased')==='true',currentItem=null,qty=1;
 let analytics={visits:142,sales:8,emails:37};
 let tapCount=0,tapTimer;
 const allTracks=[
-  {name:"Wasting Time",free:false},
-  {name:"Pain",free:false},
-  {name:"Damaged Goods",free:true},
-  {name:"Please",free:false},
-  {name:"Tell Me",free:false},
-  {name:"Like This",free:false},
-  {name:"Got Your Back",free:false},
-  {name:"Kings",free:false},
-  {name:"Let It Go",free:false},
-  {name:"Blackhole",free:false},
-  {name:"Sushi & Soju",free:false},
-  {name:"Honesty",free:false}
+  {name:"Wasting Time",free:true,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660150/Wasting_Time.mp3"},
+  {name:"Sushi & Soju",free:true,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660144/Sushi_Soju.mp3"},
+  {name:"Damaged Goods",free:false,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660134/Damaged_Goods.mp3"},
+  {name:"Like This",free:false,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660134/Like_This.mp3"},
+  {name:"Please",free:false,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660149/Please.mp3"},
+  {name:"Black Hole",free:false,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660143/Black_Hole.mp3"},
+  {name:"Honesty",free:false,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660141/Honesty.mp3"},
+  {name:"Let It Go",free:false,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660134/Let_It_Go.mp3"},
+  {name:"Twisted",free:false,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660150/Twisted.mp3"},
+  {name:"Pain",free:false,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660144/Pain.mp3"},
+  {name:"Tell Me",free:false,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660154/Tell_Me.mp3"},
+  {name:"Got Your Back",free:false,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660142/Got_Your_Back.mp3"}
 ];
 
 function goTo(page){
@@ -574,7 +574,7 @@ function renderTracks(){
   const notice=document.getElementById("lockedNotice");
   const sub=document.getElementById("listenSub");
   notice.style.display=albumPurchased?"none":"block";
-  sub.textContent=albumPurchased?"12 tracks":"1 free preview · 11 locked";
+  sub.textContent=albumPurchased?"12 tracks":"2 free previews · 10 locked";
   list.innerHTML="";
   allTracks.forEach((t,i)=>{
     const canPlay=t.free||albumPurchased;
@@ -676,6 +676,16 @@ function showToast(msg){
   const t=document.getElementById("toast");
   t.textContent=msg;t.classList.add("show");
   setTimeout(()=>t.classList.remove("show"),2800);
+}
+const urlParams=new URLSearchParams(window.location.search);
+if(urlParams.get('purchased')==='true'){
+  albumPurchased=true;
+  localStorage.setItem('embri_album_purchased','true');
+  showToast('Payment confirmed \u2014 album unlocked!');
+}
+if(urlParams.get('testunlock')==='embri123'){
+  albumPurchased=true;
+  showToast('TEST MODE: album unlocked (no payment made, not saved)');
 }
 renderTracks();
 </script>
