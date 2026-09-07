@@ -412,7 +412,9 @@ function goTo(page){
 }
 async function submitEmail(){
   const val=document.getElementById("emailInput").value.trim();
+  const name=document.getElementById("nameInput").value.trim();
   const msg=document.getElementById("emailMsg");
+  if(!name){msg.style.color="#e57373";msg.textContent="please enter your name.";return;}
   if(!val||!val.includes("@")){msg.style.color="#e57373";msg.textContent="please enter a valid email.";return;}
 
   msg.style.color="#8B6347";msg.textContent="adding you...";
@@ -421,18 +423,19 @@ async function submitEmail(){
     const res=await fetch('https://printful-order-webhook.vercel.app/api/subscribe',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email:val})
+      body:JSON.stringify({email:val,firstName:name})
     });
     if(!res.ok) throw new Error('subscribe failed');
 
     analytics.emails++;
     const emails = JSON.parse(localStorage.getItem('embri_emails') || '[]');
-    emails.push({email: val, date: new Date().toISOString()});
+    emails.push({name: name, email: val, date: new Date().toISOString()});
     localStorage.setItem('embri_emails', JSON.stringify(emails));
     updateAnalytics();
 
     msg.style.color="#8B6347";msg.textContent="you're on the list ✓ check your email";
     document.getElementById("emailInput").value="";
+    document.getElementById("nameInput").value="";
     setTimeout(()=>msg.textContent="",5000);
   }catch(err){
     console.error(err);
