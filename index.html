@@ -410,18 +410,34 @@ function goTo(page){
   }
   window.scrollTo(0,0);
 }
-function submitEmail(){
+async function submitEmail(){
   const val=document.getElementById("emailInput").value.trim();
   const msg=document.getElementById("emailMsg");
   if(!val||!val.includes("@")){msg.style.color="#e57373";msg.textContent="please enter a valid email.";return;}
-  analytics.emails++;
-  // Track email signup
-  const emails = JSON.parse(localStorage.getItem('embri_emails') || '[]');
-  emails.push({email: val, date: new Date().toISOString()});
-  localStorage.setItem('embri_emails', JSON.stringify(emails));
-  msg.style.color="#8B6347";msg.textContent="you're on the list ✓";
-  document.getElementById("emailInput").value="";
-  setTimeout(()=>msg.textContent="",4000);
+
+  msg.style.color="#8B6347";msg.textContent="adding you...";
+
+  try{
+    const res=await fetch('https://printful-order-webhook.vercel.app/api/subscribe',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email:val})
+    });
+    if(!res.ok) throw new Error('subscribe failed');
+
+    analytics.emails++;
+    const emails = JSON.parse(localStorage.getItem('embri_emails') || '[]');
+    emails.push({email: val, date: new Date().toISOString()});
+    localStorage.setItem('embri_emails', JSON.stringify(emails));
+    updateAnalytics();
+
+    msg.style.color="#8B6347";msg.textContent="you're on the list ✓ check your email";
+    document.getElementById("emailInput").value="";
+    setTimeout(()=>msg.textContent="",5000);
+  }catch(err){
+    console.error(err);
+    msg.style.color="#e57373";msg.textContent="something went wrong — please try again.";
+  }
 }
 function updateAnalytics(){
   document.getElementById('statVisits').textContent=analytics.visits;
