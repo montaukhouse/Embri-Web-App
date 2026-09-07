@@ -1,7 +1,6 @@
 import { Redis } from '@upstash/redis';
 
 const redis = Redis.fromEnv();
-const DEDUP_WINDOW_SECONDS = 1800; // 30 min
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
@@ -17,7 +16,8 @@ export default async function handler(req, res) {
     return res.status(200).json({ trackId, total, counted: false });
   }
 
-  await redis.set(dedupKey, 1, { ex: DEDUP_WINDOW_SECONDS });
+  // No expiry — one unique listen per IP per track, permanently
+  await redis.set(dedupKey, 1);
   const total = await redis.incr(`plays:${trackId}`);
   await redis.incr('plays:total');
 
