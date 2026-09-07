@@ -10,6 +10,7 @@ export default async function handler(req, res) {
   const values = await redis.mget(...keys);
   const stats = Object.fromEntries(TRACKS.map((t, i) => [t, values[i] || 0]));
   const total = await redis.get('plays:total') || 0;
+  const visits = await redis.get('visits:total') || 0;
 
-  res.status(200).json({ stats, total });
+  res.status(200).json({ stats, total, visits });
 }
