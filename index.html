@@ -636,6 +636,13 @@ function trackPlay(songName, isrc){
   // Update total streams
   const total = parseInt(localStorage.getItem('embri_total_streams') || '0') + 1;
   localStorage.setItem('embri_total_streams', total.toString());
+
+  // Track globally across all listeners
+  fetch('/api/track-play', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ trackId: songName })
+  }).catch(err => console.error('Global play tracking failed:', err));
 }
 function togglePlay(){
   if(!audio.src)return;
