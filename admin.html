@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Embri — Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f8f7f5;color:#111;font-family:'DM Sans',sans-serif;font-weight:300;min-height:100vh;}
+
+/* LOGIN */
+.login-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;}
+.login-logo{font-family:'Raleway',sans-serif;font-size:2.5rem;font-weight:100;letter-spacing:8px;text-transform:uppercase;margin-bottom:0.3rem;}
+.login-sub{font-size:0.6rem;letter-spacing:3px;color:#bbb;text-transform:uppercase;margin-bottom:3rem;}
+.login-box{width:100%;max-width:300px;display:flex;flex-direction:column;gap:0.6rem;}
+.login-field{border:1px solid #ddd;padding:0.8rem 1rem;font-family:'DM Sans',sans-serif;font-size:0.8rem;color:#111;outline:none;background:#fff;}
+.login-field:focus{border-color:#111;}
+.login-field::placeholder{color:#ccc;}
+.login-btn{background:#111;color:#fff;border:none;padding:0.9rem;font-family:'DM Sans',sans-serif;font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:background 0.2s;margin-top:0.3rem;}
+.login-btn:hover{background:#333;}
+.login-err{font-size:0.68rem;color:#e57373;text-align:center;height:1rem;}
+
+/* DASHBOARD */
+.dashboard{display:none;min-height:100vh;flex-direction:column;}
+.dash-nav{background:#fff;border-bottom:1px solid #eee;padding:1.2rem 2rem;display:flex;justify-content:space-between;align-items:center;}
+.dash-logo{font-family:'Raleway',sans-serif;font-size:1.5rem;font-weight:100;letter-spacing:5px;text-transform:uppercase;}
+.dash-nav-right{display:flex;align-items:center;gap:1.5rem;}
+.dash-tag{font-size:0.6rem;letter-spacing:2px;color:#bbb;text-transform:uppercase;}
+.logout-btn{font-size:0.65rem;letter-spacing:1px;color:#999;cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif;transition:color 0.2s;}
+.logout-btn:hover{color:#111;}
+.dash-body{flex:1;padding:1.5rem 1.5rem 4rem;}
+
+/* SECTION TITLES */
+.section-title{font-family:'Raleway',sans-serif;font-size:0.6rem;font-weight:300;letter-spacing:4px;text-transform:uppercase;color:#bbb;margin-bottom:1rem;margin-top:2rem;}
+.section-title:first-child{margin-top:0;}
+
+/* TOP STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0.6rem;margin-bottom:0.5rem;}
+.stat-card{background:#fff;border:1px solid #eee;padding:1.2rem;display:flex;flex-direction:column;gap:0.3rem;}
+.stat-card.highlight{background:#111;border-color:#111;}
+.stat-card.highlight .stat-label{color:rgba(255,255,255,0.5);}
+.stat-card.highlight .stat-num{color:#fff;}
+.stat-card.highlight .stat-change{color:rgba(255,255,255,0.6);}
+.stat-num{font-family:'Raleway',sans-serif;font-size:1.8rem;font-weight:100;color:#111;line-height:1;}
+.stat-label{font-size:0.55rem;letter-spacing:2px;text-transform:uppercase;color:#bbb;margin-top:0.2rem;}
+.stat-change{font-size:0.6rem;color:#4a8c52;}
+.stat-change.down{color:#e57373;}
+
+/* REVENUE CHART */
+.chart-card{background:#fff;border:1px solid #eee;padding:1.2rem;margin-bottom:0.6rem;}
+.chart-title{font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;color:#bbb;margin-bottom:1rem;}
+.bar-chart{display:flex;align-items:flex-end;gap:0.4rem;height:100px;}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:0.3rem;}
+.bar{width:100%;background:#111;border-radius:1px 1px 0 0;transition:height 0.3s;}
+.bar.light{background:#e8e5e0;}
+.bar-label{font-size:0.5rem;color:#ccc;letter-spacing:1px;}
+.bar-val{font-size:0.55rem;color:#111;font-family:'Raleway',sans-serif;font-weight:300;}
+
+/* RECENT ORDERS */
+.orders-list{background:#fff;border:1px solid #eee;overflow:hidden;}
+.order-row{display:flex;align-items:center;gap:1rem;padding:0.9rem 1.2rem;border-bottom:1px solid #f5f5f5;}
+.order-row:last-child{border-bottom:none;}
+.order-icon{width:32px;height:32px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;}
+.order-info{flex:1;min-width:0;}
+.order-name{font-size:0.75rem;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.order-detail{font-size:0.6rem;color:#bbb;margin-top:0.1rem;}
+.order-amount{font-family:'Raleway',sans-serif;font-size:0.9rem;font-weight:300;color:#111;flex-shrink:0;}
+.order-status{font-size:0.55rem;letter-spacing:1px;text-transform:uppercase;padding:0.2rem 0.5rem;background:#e8f5e9;color:#4a8c52;flex-shrink:0;}
+.order-status.pending{background:#fff8e1;color:#f9a825;}
+
+/* TOP SONGS */
+.songs-list{background:#fff;border:1px solid #eee;overflow:hidden;}
+.song-row{display:flex;align-items:center;gap:1rem;padding:0.8rem 1.2rem;border-bottom:1px solid #f5f5f5;}
+.song-row:last-child{border-bottom:none;}
+.song-rank{font-family:'Raleway',sans-serif;font-size:1rem;font-weight:100;color:#ddd;width:20px;flex-shrink:0;}
+.song-info{flex:1;}
+.song-name{font-size:0.75rem;color:#111;}
+.song-plays{font-size:0.6rem;color:#bbb;margin-top:0.1rem;}
+.song-bar-wrap{width:80px;height:3px;background:#f0f0f0;border-radius:2px;flex-shrink:0;}
+.song-bar-fill{height:100%;background:#8B6347;border-radius:2px;}
+
+/* EMAIL LIST */
+.email-list{background:#fff;border:1px solid #eee;overflow:hidden;}
+.email-row{display:flex;align-items:center;justify-content:space-between;padding:0.8rem 1.2rem;border-bottom:1px solid #f5f5f5;}
+.email-row:last-child{border-bottom:none;}
+.email-addr{font-size:0.72rem;color:#111;}
+.email-date{font-size:0.6rem;color:#bbb;}
+
+/* ISRC */
+.isrc-list{background:#fff;border:1px solid #eee;overflow:hidden;}
+.isrc-row{display:flex;align-items:center;justify-content:space-between;padding:0.8rem 1.2rem;border-bottom:1px solid #f5f5f5;}
+.isrc-row:last-child{border-bottom:none;}
+.isrc-track{font-size:0.72rem;color:#111;}
+.isrc-code{font-size:0.65rem;color:#8B6347;letter-spacing:1px;font-family:'DM Sans',sans-serif;}
+.upc-card{background:#fff;border:1px solid #eee;padding:1rem 1.2rem;margin-bottom:0.6rem;display:flex;justify-content:space-between;align-items:center;}
+.upc-label{font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;color:#bbb;}
+.upc-val{font-family:'Raleway',sans-serif;font-size:1rem;font-weight:300;color:#111;letter-spacing:2px;}
+
+/* TABS */
+.tabs{display:flex;gap:0;border-bottom:1px solid #eee;margin-bottom:1.5rem;background:#fff;margin:-1.5rem -1.5rem 1.5rem;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}.tabs::-webkit-scrollbar{display:none;}
+.tab{flex-shrink:0;padding:0.9rem 1rem;font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;color:#bbb;cursor:pointer;text-align:center;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap;}
+.tab.active{color:#111;border-bottom-color:#111;}
+
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+.empty-note{font-size:0.7rem;color:#ccc;text-align:center;padding:2rem;font-style:italic;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-logo">Embri</div>
+  <div class="login-sub">Admin Dashboard</div>
+  <div class="login-box">
+    <input class="login-field" type="password" placeholder="Enter admin password" id="passwordInput" onkeydown="if(event.key==='Enter')login()">
+    <button class="login-btn" onclick="login()">Access Dashboard</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard" id="dashboard">
+  <div class="dash-nav">
+    <div class="dash-logo">Embri</div>
+    <div class="dash-nav-right">
+      <span class="dash-tag">Admin</span>
+      <button class="logout-btn" onclick="logout()">Log out</button>
+    </div>
+  </div>
+
+  <div class="dash-body">
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('overview')">Overview</div>
+      <div class="tab" onclick="switchTab('orders')">Orders</div>
+      <div class="tab" onclick="switchTab('music')">Music</div>
+      <div class="tab" onclick="switchTab('fans')">Fans</div>
+      <div class="tab" onclick="switchTab('codes')">Codes</div>
+    </div>
+
+    <!-- OVERVIEW TAB -->
+    <div class="tab-content active" id="tab-overview">
+      <div class="section-title">At a glance</div>
+      <div class="stats-grid">
+        <div class="stat-card highlight">
+          <div class="stat-num">$0.00</div>
+          <div class="stat-label">Total Revenue</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">0</div>
+          <div class="stat-label">Site Visits</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">0</div>
+          <div class="stat-label">Albums Sold</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">0</div>
+          <div class="stat-label">Merch Sold</div>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-num">0</div>
+          <div class="stat-label">Email Signups</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">0</div>
+          <div class="stat-label">Total Streams</div>
+        </div>
+      </div>
+
+      <div class="section-title">Revenue — last 7 days</div>
+      <div class="chart-card">
+        <div class="bar-chart" id="revenueChart"></div>
+      </div>
+
+      <div class="section-title">Recent orders</div>
+      <div class="orders-list">
+        <div class="order-row"><div class="order-info"><div class="order-detail">No orders yet.</div></div></div>
+      </div>
+    </div>
+
+
+    <!-- ORDERS TAB -->
+    <div class="tab-content" id="tab-orders">
+      <div class="section-title">All orders</div>
+      <div class="orders-list">
+        <div class="order-row"><div class="order-info"><div class="order-detail">No orders yet.</div></div></div>
+      </div>
+    </div>
+
+    <!-- MUSIC TAB -->
+    <div class="tab-content" id="tab-music">
+      <div class="section-title">Stream stats</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-num">0</div>
+          <div class="stat-label">Total Streams</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">0</div>
+          <div class="stat-label">Albums Unlocked</div>
+        </div>
+      </div>
+
+      <div class="section-title">Top tracks <span style="float:right;font-size:0.55rem;color:#8B6347;cursor:pointer;letter-spacing:1px;" onclick="generateReport()">Export Report ↓</span></div>
+      <div class="songs-list"><div class="song-row">
+          <div class="song-rank">01</div>
+          <div class="song-info">
+            <div class="song-name">Wasting Time</div>
+            <div class="song-plays">0 plays</div>
+          </div>
+          <div class="song-bar-wrap"><div class="song-bar-fill" style="width:0%"></div></div>
+        </div><div class="song-row">
+          <div class="song-rank">02</div>
+          <div class="song-info">
+            <div class="song-name">Sushi & Soju</div>
+            <div class="song-plays">0 plays</div>
+          </div>
+          <div class="song-bar-wrap"><div class="song-bar-fill" style="width:0%"></div></div>
+        </div><div class="song-row">
+          <div class="song-rank">03</div>
+          <div class="song-info">
+            <div class="song-name">Damaged Goods</div>
+            <div class="song-plays">0 plays</div>
+          </div>
+          <div class="song-bar-wrap"><div class="song-bar-fill" style="width:0%"></div></div>
+        </div><div class="song-row">
+          <div class="song-rank">04</div>
+          <div class="song-info">
+            <div class="song-name">Like This</div>
+            <div class="song-plays">0 plays</div>
+          </div>
+          <div class="song-bar-wrap"><div class="song-bar-fill" style="width:0%"></div></div>
+        </div><div class="song-row">
+          <div class="song-rank">05</div>
+          <div class="song-info">
+            <div class="song-name">Please</div>
+            <div class="song-plays">0 plays</div>
+          </div>
+          <div class="song-bar-wrap"><div class="song-bar-fill" style="width:0%"></div></div>
+        </div><div class="song-row">
+          <div class="song-rank">06</div>
+          <div class="song-info">
+            <div class="song-name">Black Hole</div>
+            <div class="song-plays">0 plays</div>
+          </div>
+          <div class="song-bar-wrap"><div class="song-bar-fill" style="width:0%"></div></div>
+        </div><div class="song-row">
+          <div class="song-rank">07</div>
+          <div class="song-info">
+            <div class="song-name">Honesty</div>
+            <div class="song-plays">0 plays</div>
+          </div>
+          <div class="song-bar-wrap"><div class="song-bar-fill" style="width:0%"></div></div>
+        </div><div class="song-row">
+          <div class="song-rank">08</div>
+          <div class="song-info">
+            <div class="song-name">Let It Go</div>
+            <div class="song-plays">0 plays</div>
+          </div>
+          <div class="song-bar-wrap"><div class="song-bar-fill" style="width:0%"></div></div>
+        </div><div class="song-row">
+          <div class="song-rank">09</div>
+          <div class="song-info">
+            <div class="song-name">Twisted</div>
+            <div class="song-plays">0 plays</div>
+          </div>
+          <div class="song-bar-wrap"><div class="song-bar-fill" style="width:0%"></div></div>
+        </div><div class="song-row">
+          <div class="song-rank">10</div>
+          <div class="song-info">
+            <div class="song-name">Pain</div>
+            <div class="song-plays">0 plays</div>
+          </div>
+          <div class="song-bar-wrap"><div class="song-bar-fill" style="width:0%"></div></div>
+        </div><div class="song-row">
+          <div class="song-rank">11</div>
+          <div class="song-info">
+            <div class="song-name">Tell Me</div>
+            <div class="song-plays">0 plays</div>
+          </div>
+          <div class="song-bar-wrap"><div class="song-bar-fill" style="width:0%"></div></div>
+        </div><div class="song-row">
+          <div class="song-rank">12</div>
+          <div class="song-info">
+            <div class="song-name">Got Your Back</div>
+            <div class="song-plays">0 plays</div>
+          </div>
+          <div class="song-bar-wrap"><div class="song-bar-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FANS TAB -->
+    <div class="tab-content" id="tab-fans">
+      <div class="section-title">Email subscribers</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-num">0</div>
+          <div class="stat-label">Total Subscribers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">0</div>
+          <div class="stat-label">This Month</div>
+        </div>
+      </div>
+      <div class="section-title">Recent signups</div>
+      <div class="email-list">
+        <div class="email-row"><div class="email-addr">No signups yet.</div></div>
+      </div>
+    </div>
+
+    <!-- CODES TAB -->
+    <div class="tab-content" id="tab-codes">
+      <div class="section-title">Album UPC</div>
+      <div class="upc-card">
+        <div class="upc-label">Evil Innocence</div>
+        <div class="upc-val">884400875587</div>
+      </div>
+      <div class="section-title">Track ISRCs</div>
+      <div class="isrc-list"><div class="isrc-row">
+          <div class="isrc-track">01 Wasting Time</div>
+          <div class="isrc-code">QT-9YN-26-00001</div>
+        </div><div class="isrc-row">
+          <div class="isrc-track">02 Sushi & Soju</div>
+          <div class="isrc-code">QT-9YN-26-00002</div>
+        </div><div class="isrc-row">
+          <div class="isrc-track">03 Damaged Goods</div>
+          <div class="isrc-code">QT-9YN-26-00003</div>
+        </div><div class="isrc-row">
+          <div class="isrc-track">04 Like This</div>
+          <div class="isrc-code">QT-9YN-26-00004</div>
+        </div><div class="isrc-row">
+          <div class="isrc-track">05 Please</div>
+          <div class="isrc-code">QT-9YN-26-00005</div>
+        </div><div class="isrc-row">
+          <div class="isrc-track">06 Black Hole</div>
+          <div class="isrc-code">QT-9YN-26-00006</div>
+        </div><div class="isrc-row">
+          <div class="isrc-track">07 Honesty</div>
+          <div class="isrc-code">QT-9YN-26-00007</div>
+        </div><div class="isrc-row">
+          <div class="isrc-track">08 Let It Go</div>
+          <div class="isrc-code">QT-9YN-26-00008</div>
+        </div><div class="isrc-row">
+          <div class="isrc-track">09 Twisted</div>
+          <div class="isrc-code">QT-9YN-26-00009</div>
+        </div><div class="isrc-row">
+          <div class="isrc-track">10 Pain</div>
+          <div class="isrc-code">QT-9YN-26-00010</div>
+        </div><div class="isrc-row">
+          <div class="isrc-track">11 Tell Me</div>
+          <div class="isrc-code">QT-9YN-26-00011</div>
+        </div><div class="isrc-row">
+          <div class="isrc-track">12 Got Your Back</div>
+          <div class="isrc-code">QT-9YN-26-00012</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Password — change this to whatever you want
+const ADMIN_PASSWORD = "embri2026";
+
+function login(){
+  const pw = document.getElementById('passwordInput').value;
+  const err = document.getElementById('loginErr');
+  if(pw === ADMIN_PASSWORD){
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('dashboard').style.display='flex';
+    loadRealData();
+  } else {
+    err.textContent='Incorrect password. Try again.';
+    setTimeout(()=>err.textContent='',3000);
+  }
+}
+
+function logout(){
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('passwordInput').value='';
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const tabs=['overview','orders','music','fans','codes'];
+    t.classList.toggle('active', tabs[i]===name);
+  });
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+function loadRealData(){
+  const totalStreams = localStorage.getItem('embri_total_streams') || '0';
+  const visits = localStorage.getItem('embri_visits') || '0';
+  const orders = JSON.parse(localStorage.getItem('embri_orders') || '[]');
+  const emails = JSON.parse(localStorage.getItem('embri_emails') || '[]');
+  const counts = JSON.parse(localStorage.getItem('embri_counts') || '{}');
+  const plays = JSON.parse(localStorage.getItem('embri_plays') || '[]');
+
+  const albumSales = orders.filter(o=>o.item && o.item.includes('Album')).length;
+  const merchSales = orders.filter(o=>o.item && !o.item.includes('Album')).length;
+  const revenue = orders.reduce((sum,o)=>sum+(o.price||0),0);
+
+  const nums = document.querySelectorAll('.stat-num');
+  if(nums[0]) nums[0].textContent = '$'+revenue.toFixed(2);
+  if(nums[1]) nums[1].textContent = visits;
+  if(nums[2]) nums[2].textContent = albumSales;
+  if(nums[3]) nums[3].textContent = merchSales;
+  if(nums[4]) nums[4].textContent = emails.length;
+  if(nums[5]) nums[5].textContent = totalStreams;
+  if(nums[6]) nums[6].textContent = totalStreams;
+  if(nums[7]) nums[7].textContent = albumSales;
+  if(nums[8]) nums[8].textContent = emails.length;
+
+  const now = new Date();
+  const thisMonth = emails.filter(e=>{
+    const d = new Date(e.date);
+    return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+  }).length;
+  if(nums[9]) nums[9].textContent = thisMonth;
+
+  if(orders.length > 0){
+    const rows = orders.slice().reverse().map(o=>
+      '<div class="order-row">' +
+      '<div class="order-icon">'+(o.item && o.item.includes('Album')?'&#127925;':'&#128248;')+'</div>' +
+      '<div class="order-info"><div class="order-name">'+(o.item||'')+(o.size?' \u00b7 '+o.size:'')+'</div>' +
+      '<div class="order-detail">'+(o.email||'')+' \u00b7 '+new Date(o.date).toLocaleDateString()+'</div></div>' +
+      '<div class="order-amount">$'+(o.price||0).toFixed(2)+'</div>' +
+      '<div class="order-status">Paid</div></div>'
+    ).join('');
+    document.querySelectorAll('.orders-list').forEach(list=>{ list.innerHTML = rows; });
+  }
+
+  if(emails.length > 0){
+    const emailList = document.querySelector('.email-list');
+    emailList.innerHTML = emails.slice().reverse().map(e=>
+      '<div class="email-row"><div class="email-addr">'+(e.name? e.name+' \u00b7 ':'')+e.email+'</div>' +
+      '<div class="email-date">'+new Date(e.date).toLocaleDateString()+'</div></div>'
+    ).join('');
+  }
+
+  if(Object.keys(counts).length > 0){
+    const maxPlays = Math.max(...Object.values(counts));
+    const songsList = document.querySelector('.songs-list');
+    const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+    songsList.innerHTML = sorted.map((entry,i)=>
+      '<div class="song-row">' +
+      '<div class="song-rank">'+String(i+1).padStart(2,'0')+'</div>' +
+      '<div class="song-info"><div class="song-name">'+entry[0]+'</div>' +
+      '<div class="song-plays">'+entry[1]+' plays</div></div>' +
+      '<div class="song-bar-wrap"><div class="song-bar-fill" style="width:'+(maxPlays?entry[1]/maxPlays*100:0)+'%"></div></div>' +
+      '</div>'
+    ).join('');
+  }
+
+  buildChartFromOrders(orders);
+
+  window.generateReport = function(){
+    window.location.href = '/api/export-csv';
+  };
+
+  loadGlobalStats();
+}
+
+// Pull play counts from Redis (all listeners), overriding local-only numbers
+async function loadGlobalStats(){
+  try {
+    const res = await fetch('/api/stats');
+    const data = await res.json();
+    const counts = data.stats || {};
+    const total = data.total || 0;
+
+    const nums = document.querySelectorAll('.stat-num');
+    if(nums[1]) nums[1].textContent = data.visits || 0;
+    if(nums[5]) nums[5].textContent = total;
+    if(nums[6]) nums[6].textContent = total;
+
+    const played = Object.entries(counts).filter(e => e[1] > 0).sort((a,b)=>b[1]-a[1]);
+    const songsList = document.querySelector('.songs-list');
+    if(songsList && played.length > 0){
+      const maxPlays = played[0][1];
+      songsList.innerHTML = played.map((entry,i)=>
+        '<div class="song-row">' +
+        '<div class="song-rank">'+String(i+1).padStart(2,'0')+'</div>' +
+        '<div class="song-info"><div class="song-name">'+entry[0]+'</div>' +
+        '<div class="song-plays">'+entry[1]+' plays</div></div>' +
+        '<div class="song-bar-wrap"><div class="song-bar-fill" style="width:'+(maxPlays?entry[1]/maxPlays*100:0)+'%"></div></div>' +
+        '</div>'
+      ).join('');
+    }
+  } catch(err){
+    console.error('Could not load global stats:', err);
+  }
+}
+
+function buildChartFromOrders(orders){
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const today=new Date();
+  const data=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(today); d.setDate(today.getDate()-i);
+    const label=days[d.getDay()];
+    const total=orders.filter(o=>{
+      const od=new Date(o.date);
+      return od.toDateString()===d.toDateString();
+    }).reduce((s,o)=>s+(o.price||0),0);
+    data.push({day:label,val:total});
+  }
+  const max=Math.max(...data.map(d=>d.val),1);
+  const chart=document.getElementById('revenueChart');
+  chart.innerHTML='';
+  data.forEach((d,i)=>{
+    const pct=d.val>0?(d.val/max*100):4;
+    const wrap=document.createElement('div');
+    wrap.className='bar-wrap';
+    wrap.innerHTML=
+      '<div class="bar-val">$'+d.val.toFixed(0)+'</div>'+
+      '<div class="bar'+(i===6?' light':'')+'" style="height:'+pct+'px"></div>'+
+      '<div class="bar-label">'+d.day+'</div>';
+    chart.appendChild(wrap);
+  });
+}
+
+document.getElementById('passwordInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter') login();
+});
+</script>
+</body>
+</html>
