@@ -714,6 +714,10 @@ if(urlParams.get('testunlock')==='embri123'){
   showToast('TEST MODE: album unlocked (no payment made, not saved)');
 }
 renderTracks();
+
+// Count this visitor globally (unique per IP)
+fetch('/api/track-visit', { method: 'POST' })
+  .catch(err => console.error('Visit tracking failed:', err));
 </script>
 </body>
 </html>
