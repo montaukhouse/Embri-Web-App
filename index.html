@@ -40,6 +40,12 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
 .action-box:hover{background:#111;border-color:#111;}
 .action-box:hover .box-label{color:#fff;}
 .box-label{font-family:'DM Sans',sans-serif;font-size:0.65rem;font-weight:300;color:#111;letter-spacing:2px;text-transform:lowercase;transition:color 0.2s;}
+.action-box.primary{background:#111;border-color:#111;padding:0.7rem 1rem;}
+.action-box.primary .box-label{color:#fff;font-size:0.75rem;font-weight:400;letter-spacing:2.5px;}
+.action-box.primary .box-label{display:inline-flex;align-items:center;}
+.play-icon{width:8px;height:9px;margin-right:9px;fill:none;stroke:#fff;stroke-width:1.4;stroke-linejoin:round;flex-shrink:0;}
+.action-box.primary:hover{background:#333;border-color:#333;}
+.action-boxes{margin-bottom:1.6rem;}
 .store-content,.listen-content{flex:1;display:flex;flex-direction:column;align-items:center;padding:0.5rem 2rem 5rem;}
 .page-title{font-family:'Raleway',sans-serif;font-size:clamp(2.5rem,8vw,4rem);font-weight:100;letter-spacing:6px;text-transform:uppercase;margin-bottom:0.3rem;text-align:center;color:#111;}
 .page-sub{font-family:'DM Sans',sans-serif;font-size:0.65rem;font-weight:300;color:#bbb;letter-spacing:3px;text-transform:uppercase;margin-bottom:2.2rem;}
@@ -171,6 +177,10 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
       <span class="stag-step2">innocence</span>
       <span class="stag-step3">out now</span>
     </div>
+    <div class="action-boxes">
+      <div class="action-box primary" onclick="goTo('listen')"><span class="box-label"><svg class="play-icon" viewBox="0 0 12 14" aria-hidden="true"><polygon points="1,1 11,7 1,13"/></svg>tap to listen</span></div>
+      <div class="action-box" onclick="goTo('store')"><span class="box-label">buy</span></div>
+    </div>
     <div class="email-section">
       <span class="email-label">stay in the loop</span>
       <div class="email-box" style="margin-bottom:0.4rem;">
@@ -181,10 +191,6 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
         <button class="email-btn" onclick="submitEmail()">rsvp</button>
       </div>
       <p class="email-msg" id="emailMsg"></p>
-    </div>
-    <div class="action-boxes">
-      <div class="action-box" onclick="goTo('store')"><span class="box-label">buy</span></div>
-      <div class="action-box" onclick="goTo('listen')"><span class="box-label">listen now</span></div>
     </div>
   </div>
   <footer class="footer">© 2026 Embri. All rights reserved.</footer>
