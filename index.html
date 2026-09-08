@@ -144,6 +144,15 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
 
 .toast{position:fixed;bottom:5rem;left:50%;transform:translateX(-50%) translateY(10px);background:#111;color:#fff;padding:0.6rem 1.4rem;font-family:'DM Sans',sans-serif;font-size:0.8rem;letter-spacing:1px;opacity:0;transition:all 0.3s ease;z-index:600;white-space:nowrap;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.site-footer{padding:1.1rem 1.5rem;text-align:center;font-family:'Raleway',sans-serif;font-size:0.66rem;letter-spacing:0.5px;color:#999;}
+.footer-link{background:none;border:none;padding:0;font:inherit;color:#999;text-decoration:none;cursor:pointer;letter-spacing:0.5px;}
+.footer-dot{margin:0 0.5rem;color:#ccc;}
+.footer-copy{color:#bbb;}
+.legal-content{max-width:640px;margin:0 auto;padding:0 1.5rem 3rem;font-family:'Raleway',sans-serif;}
+.legal-content h3{font-size:0.72rem;letter-spacing:1px;text-transform:uppercase;color:#111;margin:1.8rem 0 0.5rem;font-weight:600;}
+.legal-content p{font-size:0.82rem;line-height:1.7;color:#555;}
+.legal-content a{color:#111;}
+.legal-foot{margin-top:2.5rem;padding-top:1.2rem;border-top:1px solid #e5e5e5;font-size:0.7rem;color:#999;}
 </style>
 <script>
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
@@ -730,5 +739,34 @@ renderTracks();
 fetch('/api/track-visit', { method: 'POST' })
   .catch(err => console.error('Visit tracking failed:', err));
 </script>
+<div class="page" id="legal">
+  <nav><div></div><button class="nav-back" onclick="goTo('home')">&#8592; back</button></nav>
+  <div class="legal-content">
+    <h2 class="page-title">Info &amp; Policies</h2>
+    <h3>About</h3>
+    <p>Embri is an American recording artist. Through this site we sell digital music downloads &mdash; the album <em>Evil Innocence</em> and its individual tracks &mdash; along with branded apparel and merchandise.</p>
+    <h3>Products &amp; Pricing</h3>
+    <p>Digital album and single-track downloads are delivered instantly online after purchase; prices are listed on each item in the store. Physical merchandise is printed on demand and shipped within 5&ndash;10 business days. All prices are shown in US dollars at checkout.</p>
+    <h3>Customer Support</h3>
+    <p>Questions about an order, a download, or a shipment? Email <a href="mailto:hello@embriofficial.com">hello@embriofficial.com</a> and we typically respond within 2 business days.</p>
+    <h3>Refunds &amp; Returns</h3>
+    <p>Digital downloads are non-refundable once delivered, except where the file is faulty or fails to download &mdash; email us and we will resend it or issue a refund. Physical merchandise may be returned within 30 days of delivery if it is damaged, defective, or incorrect; contact us with your order details and we will arrange a replacement or refund. Because merchandise is made to order, we do not accept returns for change of mind or incorrect size selection.</p>
+    <h3>Shipping</h3>
+    <p>Shipping is free on all merchandise orders. Domestic orders typically arrive within 5&ndash;10 business days. International delivery times vary by destination and may take longer; email us if you need an estimate before ordering.</p>
+    <h3>Privacy</h3>
+    <p>We collect only the information needed to process your order and, if you opt in, to send you occasional email updates about new music and releases. Payments are processed securely by Stripe; we never see or store your full card details. Merchandise orders are fulfilled through Printful, who receive your shipping address for that purpose only. We do not sell or share your personal information with anyone else. To have your information removed from our mailing list or records, email <a href="mailto:hello@embriofficial.com">hello@embriofficial.com</a>.</p>
+    <h3>Terms of Use</h3>
+    <p>All music, artwork, and other content on this site is owned by Embri and is provided for personal, non-commercial listening and use only. Purchasing a download does not transfer any ownership or licensing rights, and content may not be redistributed, resold, publicly performed, or used commercially without written permission. By purchasing you agree to these terms and confirm the information you provide at checkout is accurate.</p>
+    <div class="legal-foot">Embri &middot; <a href="mailto:hello@embriofficial.com">hello@embriofficial.com</a></div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <button class="footer-link" onclick="goTo('legal')">Info &amp; Policies</button>
+  <span class="footer-dot">&middot;</span>
+  <a class="footer-link" href="mailto:hello@embriofficial.com">Contact</a>
+  <span class="footer-dot">&middot;</span>
+  <span class="footer-copy">&copy; 2026 Embri</span>
+</footer>
 </body>
 </html>
