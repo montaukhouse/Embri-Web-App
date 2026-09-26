@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Embri</title>
+<meta name="description" content="Listen to Evil Innocence by Embri.">
+<meta property="og:type" content="music.album">
+<meta property="og:site_name" content="Embri">
+<meta property="og:title" content="Evil Innocence — Embri">
+<meta property="og:description" content="Listen on embriofficial.com">
+<meta property="og:image" content="https://embriofficial.com/cover.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="1200">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://embriofficial.com/cover.jpg">
 <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@100;200;300&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -103,9 +113,36 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
 .locked-notice{width:100%;max-width:360px;margin-bottom:1.8rem;padding:0.9rem 1.2rem;background:#fffdf7;border:1px solid #ede8d8;font-size:0.7rem;color:#bbb;text-align:center;line-height:1.6;}
 .locked-notice span{color:#111;cursor:pointer;text-decoration:underline;}
 .track-list{width:100%;max-width:360px;}
+.track-row.locked .track-num,.track-row.locked .track-name,.track-row.locked .track-icon{opacity:0.3;}
+.track-more{width:36px;height:36px;display:flex;align-items:center;justify-content:center;margin:-0.5rem -0.3rem -0.5rem 0;cursor:pointer;flex-shrink:0;border-radius:50%;color:#999;transition:background 0.2s,color 0.2s;}
+.track-more svg{width:18px;height:18px;fill:currentColor;}
+.track-more:hover,.track-more:active{background:#f3f0ea;color:#111;}
+.saved-tag{display:inline-block;margin-left:0.4rem;font-size:0.5rem;letter-spacing:1.5px;color:#4a8c52;text-transform:uppercase;vertical-align:middle;}
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:none;align-items:flex-end;justify-content:center;z-index:500;}
+.sheet-overlay.open{display:flex;}
+.sheet{width:100%;max-width:420px;background:#fff;padding:0.6rem 0 calc(0.8rem + env(safe-area-inset-bottom));border-radius:14px 14px 0 0;animation:sheetUp 0.22s ease-out;}
+@keyframes sheetUp{from{transform:translateY(100%);}to{transform:none;}}
+.sheet-grab{width:36px;height:4px;background:#e5e1d8;border-radius:2px;margin:0.2rem auto 0.8rem;}
+.sheet-title{font-family:'Raleway',sans-serif;font-size:0.95rem;font-weight:300;letter-spacing:1px;color:#111;text-align:center;}
+.sheet-sub{font-size:0.6rem;letter-spacing:2px;text-transform:uppercase;color:#bbb;text-align:center;margin:0.2rem 0 0.8rem;}
+.sheet-btn{display:flex;align-items:center;gap:0.9rem;width:100%;background:none;border:none;border-top:1px solid #f3f0ea;padding:0.95rem 1.4rem;font-family:'DM Sans',sans-serif;font-size:0.82rem;color:#111;text-align:left;cursor:pointer;}
+.sheet-btn:active{background:#faf8f4;}
+.sheet-btn svg{width:18px;height:18px;flex-shrink:0;fill:none;stroke:#8B6347;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+.sheet-btn .hint{display:block;font-size:0.62rem;color:#aaa;margin-top:0.15rem;}
+.sheet-btn.cancel{justify-content:center;color:#999;}
+.sheet-form{padding:0 1.4rem 0.6rem;}
+.sheet-form p{font-size:0.72rem;color:#777;line-height:1.5;margin:0 0 0.8rem;text-align:center;}
+.sheet-form .row{display:flex;border:1px solid #e5e1d8;}
+.sheet-form input{flex:1;border:none;padding:0.8rem;font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none;min-width:0;}
+.sheet-form button{border:none;background:#111;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.7rem;letter-spacing:1px;padding:0 1rem;cursor:pointer;}
+.sheet-form .msg{font-size:0.7rem;color:#8B6347;text-align:center;min-height:1rem;margin-top:0.6rem;}
+.track-row.shared{background:#fffdf7;box-shadow:inset 3px 0 0 #8B6347;}
+.shared-banner{display:none;width:100%;max-width:360px;margin-bottom:1rem;padding:0.9rem 1.2rem;background:#111;color:#fff;font-size:0.72rem;text-align:center;line-height:1.6;}
+.shared-banner b{font-weight:500;}
+.shared-banner button{margin-top:0.6rem;background:#fff;color:#111;border:none;font-family:'DM Sans',sans-serif;font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;padding:0.55rem 1rem;cursor:pointer;}
 .track-row{display:flex;align-items:center;gap:1.1rem;padding:1.1rem 0;border-bottom:1px solid #f0ede8;cursor:pointer;}
 .track-row:first-child{border-top:1px solid #f0ede8;}
-.track-row.locked{cursor:default;opacity:0.3;}
+.track-row.locked{cursor:default;}
 .track-row.playing .track-name{color:#8B6347;}
 .track-row.playing .track-icon{color:#8B6347;}
 .track-num{font-size:0.63rem;color:#ccc;width:18px;text-align:center;flex-shrink:0;}
@@ -164,6 +201,13 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icon-180.png">
+<meta name="theme-color" content="#111111">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Embri">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
 <body>
 
@@ -299,6 +343,7 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
   <div class="listen-content">
     <h2 class="page-title">Listen</h2>
     <p class="page-sub" id="listenSub">2 free previews</p>
+    <div class="shared-banner" id="sharedBanner"></div>
     <div class="locked-notice" id="lockedNotice">
       <span onclick="goTo('store')">Buy the album</span> to unlock all 12 tracks.
     </div>
@@ -396,24 +441,57 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
   <img id="lightboxImg" src="" alt="" onclick="event.stopPropagation()">
   <div class="lightbox-swatches" id="lightboxSwatches" onclick="event.stopPropagation()"></div>
 </div>
+<div class="sheet-overlay" id="trackMenu" onclick="if(event.target===this)closeMenu()">
+  <div class="sheet" role="dialog" aria-label="Song options">
+    <div class="sheet-grab"></div>
+    <div id="menuMain">
+      <div class="sheet-title" id="menuTitle"></div>
+      <div class="sheet-sub">Embri &middot; Evil Innocence</div>
+      <button class="sheet-btn" onclick="menuShare('song')"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 002 2h10a2 2 0 002-2v-6"/></svg><span>Share song</span></button>
+      <button class="sheet-btn" onclick="menuShare('album')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/></svg><span>Share album</span></button>
+      <button class="sheet-btn" id="mOffline" onclick="toggleOffline()"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 20h14"/></svg><span><span id="mOfflineLabel">Save album for offline</span><span class="hint" id="mOfflineHint">Listen with no signal</span></span></button>
+      <button class="sheet-btn" id="mInstall" onclick="installApp()"><svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg><span>Add Embri app to Home Screen<span class="hint">Opens like an app, works offline</span></span></button>
+      <button class="sheet-btn" onclick="showEmailForm()"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span id="mEmailLabel">Email me my album link</span></button>
+      <button class="sheet-btn cancel" onclick="closeMenu()">Cancel</button>
+    </div>
+    <div id="menuEmail" style="display:none">
+      <div class="sheet-title">Email me my album link</div>
+      <div class="sheet-sub">For album buyers</div>
+      <form class="sheet-form" onsubmit="sendAlbumLink(event)">
+        <p>Enter the email you used to buy the album. We'll send your personal link to play it on any phone or computer.</p>
+        <div class="row"><input type="email" id="linkEmail" placeholder="your@email.com" required><button type="submit" id="linkBtn">Send</button></div>
+        <div class="msg" id="linkMsg"></div>
+      </form>
+      <button class="sheet-btn cancel" onclick="closeMenu()">Close</button>
+    </div>
+    <div id="menuInstall" style="display:none">
+      <div class="sheet-title">Add Embri to your Home Screen</div>
+      <div class="sheet-sub">Takes 5 seconds</div>
+      <div class="sheet-form"><p id="installSteps"></p></div>
+      <button class="sheet-btn cancel" onclick="closeMenu()">Got it</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 <script>
-let albumPurchased=localStorage.getItem('embri_album_purchased')==='true',currentItem=null,qty=1;
+// Browsers unlocked before the share/protection update have the old flag but no token: grandfathered in.
+const hadOldUnlock=localStorage.getItem('embri_album_purchased')==='true'&&!localStorage.getItem('embri_token');
+let albumPurchased=!!localStorage.getItem('embri_token')||hadOldUnlock,currentItem=null,qty=1,sharedTrack=null;
 let analytics={visits:142,sales:8,emails:37};
 let tapCount=0,tapTimer;
 const allTracks=[
-  {name:"Wasting Time",free:true,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660150/Wasting_Time.mp3"},
-  {name:"Sushi & Soju",free:true,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660144/Sushi_Soju.mp3"},
-  {name:"Damaged Goods",free:false,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660134/Damaged_Goods.mp3"},
-  {name:"Like This",free:false,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660134/Like_This.mp3"},
-  {name:"Please",free:false,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660149/Please.mp3"},
-  {name:"Black Hole",free:false,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660143/Black_Hole.mp3"},
-  {name:"Honesty",free:false,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660141/Honesty.mp3"},
-  {name:"Let It Go",free:false,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660134/Let_It_Go.mp3"},
-  {name:"Twisted",free:false,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660150/Twisted.mp3"},
-  {name:"Pain",free:false,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660144/Pain.mp3"},
-  {name:"Tell Me",free:false,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660154/Tell_Me.mp3"},
-  {name:"Got Your Back",free:false,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660142/Got_Your_Back.mp3"}
+  {name:"Wasting Time",slug:"wasting-time",free:true,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660150/Wasting_Time.mp3"},
+  {name:"Sushi & Soju",slug:"sushi-soju",free:true,url:"https://res.cloudinary.com/yyq1iype/video/upload/v1788660144/Sushi_Soju.mp3"},
+  {name:"Damaged Goods",slug:"damaged-goods",free:false},
+  {name:"Like This",slug:"like-this",free:false},
+  {name:"Please",slug:"please",free:false},
+  {name:"Black Hole",slug:"black-hole",free:false},
+  {name:"Honesty",slug:"honesty",free:false},
+  {name:"Let It Go",slug:"let-it-go",free:false},
+  {name:"Twisted",slug:"twisted",free:false},
+  {name:"Pain",slug:"pain",free:false},
+  {name:"Tell Me",slug:"tell-me",free:false},
+  {name:"Got Your Back",slug:"got-your-back",free:false}
 ];
 
 function goTo(page){
@@ -611,28 +689,39 @@ function renderTracks(){
   const list=document.getElementById("trackList");
   const notice=document.getElementById("lockedNotice");
   const sub=document.getElementById("listenSub");
-  notice.style.display=albumPurchased?"none":"block";
+  notice.style.display=(albumPurchased||document.getElementById("sharedBanner").style.display==="block")?"none":"block";
   sub.textContent=albumPurchased?"12 tracks":"2 free previews · 10 locked";
   list.innerHTML="";
   allTracks.forEach((t,i)=>{
     const canPlay=t.free||albumPurchased;
     const playing=i===currentTrackIdx;
     const row=document.createElement("div");
-    row.className="track-row"+(canPlay?"":" locked")+(playing?" playing":"");
+    row.className="track-row"+(canPlay?"":" locked")+(playing?" playing":"")+(t.slug===sharedTrack?" shared":"");
+    row.id="row-"+t.slug;
     row.innerHTML='<div class="track-num">'+String(i+1).padStart(2,"0")+'</div>'
-      +'<div class="track-name">'+t.name+(t.free&&!albumPurchased?'<div class="track-tag">free preview</div>':'')+'</div>'
+      +'<div class="track-name">'+t.name+(t.offlineUrl?'<span class="saved-tag">&#10003; offline</span>':'')+(t.free&&!albumPurchased?'<div class="track-tag">free preview</div>':'')+'</div>'
+      +'<div class="track-more" role="button" aria-label="More options for '+t.name+'" onclick="openMenu(\''+t.slug+'\',event)"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></div>'
       +(canPlay?'<div class="track-icon">'+(playing&&isPlaying?'&#9646;&#9646;':'&#9654;')+'</div>':'<div class="track-icon">&#128274;</div>');
     if(canPlay)row.onclick=()=>playTrack(i);
     list.appendChild(row);
   });
 }
-function playTrack(idx){
+async function playTrack(idx){
   const t=allTracks[idx];
+  if(!t.url&&!t.offlineUrl){
+    await accessReady;
+    await loadSongs();
+    if(!t.url){
+      showToast(!navigator.onLine?'You\u2019re offline \u2014 save the album for offline to listen without signal':localStorage.getItem('embri_token')?'Could not load this song \u2014 try again':'Buy the album to play this song');
+      return;
+    }
+  }
   currentTrackIdx=idx;
-  if(!t.url||t.url.startsWith('YOUR_')){showToast('Upload audio file for: '+t.name);return;}
+  const src=t.offlineUrl||t.url;
+  if(!src||src.startsWith('YOUR_')){showToast('Upload audio file for: '+t.name);return;}
   // Track the play
   trackPlay(t.name, t.isrc || 'PENDING');
-  audio.src=t.url;audio.play();isPlaying=true;
+  audio.src=src;audio.play();isPlaying=true;
   document.getElementById('playerSong').textContent=t.name;
   document.getElementById('playBtn').innerHTML='&#9646;&#9646;';
   document.getElementById('player').classList.add('visible');
@@ -657,11 +746,7 @@ function trackPlay(songName, isrc){
   localStorage.setItem('embri_total_streams', total.toString());
 
   // Track globally across all listeners
-  fetch('/api/track-play', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ trackId: songName })
-  }).catch(err => console.error('Global play tracking failed:', err));
+  sendPlay(songName);
 }
 function togglePlay(){
   if(!audio.src)return;
@@ -723,11 +808,274 @@ function showToast(msg){
   setTimeout(()=>t.classList.remove("show"),2800);
 }
 const urlParams=new URLSearchParams(window.location.search);
-if(urlParams.get('purchased')==='true'){
+if(urlParams.get('purchased')==='true'&&!urlParams.get('session_id')){
+  showToast('Check your email for your album link');
+  history.replaceState(null,'',window.location.pathname+window.location.hash);
+}
+// ---------- Buyer access (unlock token) ----------
+function saveAccess(d){
+  if(d.token)localStorage.setItem('embri_token',d.token);
+  if(d.code)localStorage.setItem('embri_code',d.code);
   albumPurchased=true;
   localStorage.setItem('embri_album_purchased','true');
-  showToast('Payment confirmed \u2014 album unlocked!');
 }
+let songsLoading=null,accessReady=Promise.resolve();
+function loadSongs(){
+  const token=localStorage.getItem('embri_token');
+  if(!token)return Promise.resolve();
+  if(songsLoading)return songsLoading;
+  songsLoading=fetch('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'songs',token:token})})
+  .then(r=>r.json()).then(d=>{
+    if(d.ok&&d.urls)allTracks.forEach(t=>{if(d.urls[t.slug])t.url=d.urls[t.slug];});
+    else songsLoading=null;
+  }).catch(()=>{songsLoading=null;});
+  return songsLoading;
+}
+function cleanUrl(){history.replaceState(null,'',window.location.pathname+window.location.hash);}
+// Right after Stripe checkout (?purchased=true&session_id=...)
+if(urlParams.get('session_id')){
+  fetch('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'session',session_id:urlParams.get('session_id'),ref:localStorage.getItem('embri_ref')||''})})
+  .then(r=>r.json()).then(d=>{
+    if(d.ok){saveAccess(d);loadSongs();renderTracks();showToast('Payment confirmed \u2014 album unlocked!');}
+    else showToast('Check your email for your album link');
+  }).catch(err=>console.error(err));
+  cleanUrl();
+}
+// Personal link from the album email (?unlock=...) — works in any browser
+if(urlParams.get('unlock')){
+  const tok=urlParams.get('unlock');
+  fetch('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'check',token:tok})})
+  .then(r=>r.json()).then(d=>{
+    if(d.ok){
+      saveAccess({token:tok,code:d.code});loadSongs();renderTracks();
+      showToast('Welcome back \u2014 album unlocked!');
+    }else{showToast('That unlock link is not valid');}
+  }).catch(()=>showToast('Could not check your link \u2014 try again'));
+  cleanUrl();
+}else if(hadOldUnlock){
+  accessReady=fetch('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'legacy'})})
+  .then(r=>r.json()).then(d=>{
+    if(d.ok){saveAccess(d);loadSongs();}
+    else{albumPurchased=false;localStorage.removeItem('embri_album_purchased');renderTracks();}
+  }).catch(()=>{});
+}else if(localStorage.getItem('embri_token')){
+  loadSongs();
+  if(!localStorage.getItem('embri_code')){
+    fetch('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'check',token:localStorage.getItem('embri_token')})})
+    .then(r=>r.json()).then(d=>{if(d.ok&&d.code)localStorage.setItem('embri_code',d.code);}).catch(()=>{});
+  }
+}
+
+// ---------- Sharing ----------
+function myShareCode(){
+  let c=localStorage.getItem('embri_code');
+  if(c)return c;
+  c=localStorage.getItem('embri_guest');
+  if(!c){c='g'+(Math.random().toString(36).slice(2)+'00000000').slice(0,8);localStorage.setItem('embri_guest',c);}
+  return c;
+}
+async function shareSong(slug,ev){
+  if(ev)ev.stopPropagation();
+  const code=myShareCode();
+  const t=allTracks.find(x=>x.slug===slug);
+  const url=window.location.origin+'/?s='+code+(t?'&t='+slug:'');
+  const title=t?t.name+' \u2014 Embri':'Evil Innocence \u2014 Embri';
+  const text=t?'Listen to "'+t.name+'" by Embri':'Listen to Evil Innocence by Embri';
+  const logShare=()=>fetch('/api/share',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({event:'share',code:code,track:t?slug:'album'})}).catch(()=>{});
+  if(navigator.share){
+    try{await navigator.share({title:title,text:text,url:url});logShare();}catch(e){}
+  }else{
+    try{await navigator.clipboard.writeText(url);logShare();showToast('Link copied \u2014 paste it anywhere');}
+    catch(e){prompt('Copy this link:',url);logShare();}
+  }
+}
+// Someone opened a shared link (?s=code&t=song)
+if(urlParams.get('s')){
+  const from=urlParams.get('s').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,12);
+  const slugParam=urlParams.get('t');
+  const t=allTracks.find(x=>x.slug===slugParam);
+  if(from&&from!==localStorage.getItem('embri_code')&&from!==localStorage.getItem('embri_guest')){
+    localStorage.setItem('embri_ref',from);
+    fetch('/api/share',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({event:'open',code:from,track:t?t.slug:'album'})}).catch(()=>{});
+  }
+  if(t)sharedTrack=t.slug;
+  const b=document.getElementById('sharedBanner');
+  if(!albumPurchased){
+    if(t&&!t.free){
+      b.innerHTML='<b>'+t.name+'</b> was shared with you.<br>Buy the album to hear it, or play the 2 free songs below.<br><button onclick="goTo(\'store\')">Buy the album</button>';
+    }else if(t){
+      b.innerHTML='<b>'+t.name+'</b> was shared with you.<br>Tap it below to play.';
+    }else{
+      b.innerHTML='<b>Evil Innocence</b> was shared with you.<br>Play the 2 free songs below, or unlock all 12.<br><button onclick="goTo(\'store\')">Buy the album</button>';
+    }
+    b.style.display='block';
+  }
+  cleanUrl();
+  setTimeout(()=>{
+    goTo('listen');
+    const row=t&&document.getElementById('row-'+t.slug);
+    if(row)row.scrollIntoView({block:'center'});
+  },0);
+}
+// ---------- Plays made offline: remember them and send when back online ----------
+function sendPlay(songName){
+  if(!navigator.onLine){queuePlay(songName);return;}
+  fetch('/api/track-play',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({trackId:songName})})
+  .catch(()=>queuePlay(songName));
+}
+function queuePlay(songName){
+  try{const q=JSON.parse(localStorage.getItem('embri_play_queue')||'[]');q.push(songName);localStorage.setItem('embri_play_queue',JSON.stringify(q.slice(-200)));}catch(e){}
+}
+function flushPlays(){
+  let q=[];try{q=JSON.parse(localStorage.getItem('embri_play_queue')||'[]');}catch(e){}
+  if(!q.length||!navigator.onLine)return;
+  localStorage.removeItem('embri_play_queue');
+  q.forEach(n=>sendPlay(n));
+}
+window.addEventListener('online',flushPlays);
+setTimeout(flushPlays,1500);
+
+// ---------- Offline album (saved inside the app on this device, not as files) ----------
+const DB_NAME='embri-offline';
+function openDB(){
+  return new Promise((res,rej)=>{
+    const r=indexedDB.open(DB_NAME,1);
+    r.onupgradeneeded=()=>r.result.createObjectStore('songs');
+    r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);
+  });
+}
+async function dbDo(mode,fn){
+  const db=await openDB();
+  return new Promise((res,rej)=>{
+    const tx=db.transaction('songs',mode),st=tx.objectStore('songs');
+    const out=fn(st);
+    tx.oncomplete=()=>res(out&&out.result!==undefined?out.result:out);
+    tx.onerror=()=>rej(tx.error);
+  });
+}
+async function loadOffline(){
+  try{
+    const db=await openDB();
+    await new Promise(res=>{
+      const tx=db.transaction('songs','readonly'),st=tx.objectStore('songs');
+      allTracks.forEach(t=>{
+        const g=st.get(t.slug);
+        g.onsuccess=()=>{if(g.result&&!t.offlineUrl)t.offlineUrl=URL.createObjectURL(g.result);};
+      });
+      tx.oncomplete=res;tx.onerror=res;
+    });
+    if(allTracks.some(t=>t.offlineUrl))renderTracks();
+  }catch(e){}
+}
+function isAlbumSaved(){return allTracks.filter(t=>t.free||albumPurchased).every(t=>t.offlineUrl);}
+let saving=false;
+async function toggleOffline(){
+  closeMenu();
+  if(isAlbumSaved()){
+    if(!confirm('Remove the offline copy from this device? You can still stream it anytime.'))return;
+    await dbDo('readwrite',st=>st.clear());
+    allTracks.forEach(t=>{if(t.offlineUrl){URL.revokeObjectURL(t.offlineUrl);delete t.offlineUrl;}});
+    renderTracks();showToast('Offline copy removed');return;
+  }
+  if(saving)return;
+  if(!albumPurchased){showToast('Buy the album to save it for offline');return;}
+  if(!navigator.onLine){showToast('Connect to the internet to save the album');return;}
+  saving=true;
+  try{
+    await accessReady;await loadSongs();
+    if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
+    const todo=allTracks.filter(t=>!t.offlineUrl&&t.url);
+    if(!todo.length)throw new Error('no songs');
+    let n=allTracks.length-todo.length;
+    for(const t of todo){
+      showToast('Saving for offline\u2026 '+(++n)+' of '+allTracks.length);
+      const r=await fetch(t.url,{mode:'cors'});
+      if(!r.ok)throw new Error('download '+r.status);
+      const blob=await r.blob();
+      await dbDo('readwrite',st=>st.put(blob,t.slug));
+      t.offlineUrl=URL.createObjectURL(blob);
+      renderTracks();
+    }
+    showToast('Album saved \u2014 plays with no signal \u2713');
+    if(!isStandalone())setTimeout(()=>{openMenuInstallTip();},2900);
+  }catch(e){
+    console.error(e);
+    showToast(e.name==='QuotaExceededError'?'Not enough space on this device':'Could not save for offline \u2014 try again');
+  }
+  saving=false;
+}
+loadOffline();
+
+// ---------- Home Screen app ----------
+function isStandalone(){return window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}
+let installPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;});
+function installSteps(){
+  const ua=navigator.userAgent;
+  if(/iPhone|iPad|iPod/.test(ua))return 'In Safari, tap the <b>Share</b> button (the square with an arrow), then <b>Add to Home Screen</b>, then <b>Add</b>. Embri will show up with your other apps.';
+  if(/Android/.test(ua))return 'Tap the browser menu (<b>&#8942;</b>), then <b>Add to Home screen</b> or <b>Install app</b>.';
+  return 'In Chrome or Edge, click the <b>install</b> icon at the right end of the address bar. In Safari on Mac, choose <b>File &rarr; Add to Dock</b>.';
+}
+async function installApp(){
+  if(installPrompt){closeMenu();installPrompt.prompt();try{await installPrompt.userChoice;}catch(e){}installPrompt=null;return;}
+  openMenuInstallTip(true);
+}
+function openMenuInstallTip(){
+  document.getElementById('installSteps').innerHTML=installSteps();
+  showMenuPanel('menuInstall');
+  document.getElementById('trackMenu').classList.add('open');
+}
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+}
+
+// ---------- ⋯ menu ----------
+let menuSlug=null;
+function showMenuPanel(id){['menuMain','menuEmail','menuInstall'].forEach(x=>document.getElementById(x).style.display=x===id?'block':'none');}
+function openMenu(slug,ev){
+  if(ev)ev.stopPropagation();
+  menuSlug=slug;
+  const t=allTracks.find(x=>x.slug===slug);
+  document.getElementById('menuTitle').textContent=t?t.name:'Evil Innocence';
+  const saved=isAlbumSaved();
+  document.getElementById('mOffline').style.display=albumPurchased?'flex':'none';
+  document.getElementById('mOfflineLabel').textContent=saved?'Remove offline copy':'Save album for offline';
+  document.getElementById('mOfflineHint').textContent=saved?'Saved on this device \u2713':'Listen with no signal';
+  document.getElementById('mInstall').style.display=isStandalone()?'none':'flex';
+  document.getElementById('mEmailLabel').textContent=albumPurchased?'Email me my album link':'Already bought? Email me my link';
+  showMenuPanel('menuMain');
+  document.getElementById('trackMenu').classList.add('open');
+}
+function closeMenu(){document.getElementById('trackMenu').classList.remove('open');}
+function menuShare(kind){closeMenu();shareSong(kind==='album'?'album':menuSlug);}
+function showEmailForm(){
+  document.getElementById('linkMsg').textContent='';
+  showMenuPanel('menuEmail');
+  setTimeout(()=>document.getElementById('linkEmail').focus(),50);
+}
+async function sendAlbumLink(e){
+  e.preventDefault();
+  const btn=document.getElementById('linkBtn'),msg=document.getElementById('linkMsg');
+  btn.disabled=true;msg.textContent='Sending\u2026';
+  try{
+    const r=await fetch('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'restore',email:document.getElementById('linkEmail').value})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'failed');
+    msg.textContent='If that email bought the album, your link is on its way. Check your inbox (and spam).';
+  }catch(err){
+    msg.textContent=err.message==='Enter a valid email'?err.message:'Something went wrong. Email hello@embriofficial.com and we\u2019ll help.';
+  }
+  btn.disabled=false;
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu();});
+
 if(urlParams.get('testunlock')==='embri123'){
   albumPurchased=true;
   showToast('TEST MODE: album unlocked (no payment made, not saved)');

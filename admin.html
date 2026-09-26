@@ -139,6 +139,7 @@ body{background:#f8f7f5;color:#111;font-family:'DM Sans',sans-serif;font-weight:
       <div class="tab" onclick="switchTab('music')">Music</div>
       <div class="tab" onclick="switchTab('fans')">Fans</div>
       <div class="tab" onclick="switchTab('codes')">Codes</div>
+      <div class="tab" onclick="switchTab('shares')">Shares</div>
     </div>
 
     <!-- OVERVIEW TAB -->
@@ -363,17 +364,75 @@ body{background:#f8f7f5;color:#111;font-family:'DM Sans',sans-serif;font-weight:
       </div>
     </div>
 
+    <!-- SHARES TAB -->
+    <div class="tab-content" id="tab-shares">
+      <div class="section-title">Sharing</div>
+      <div class="stats-grid">
+        <div class="stat-card highlight"><div class="share-num stat-num" id="shTotalShares">0</div><div class="stat-label">Songs Shared</div></div>
+        <div class="stat-card"><div class="share-num stat-num" id="shTotalOpens">0</div><div class="stat-label">Link Opens</div></div>
+        <div class="stat-card"><div class="share-num stat-num" id="shTotalSales">0</div><div class="stat-label">Sales From Shares</div></div>
+        <div class="stat-card"><div class="share-num stat-num" id="shSharers">0</div><div class="stat-label">People Sharing</div></div>
+      </div>
+      <div class="section-title">Top sharers</div>
+      <div class="email-list" id="shSharerList"><div class="email-row"><div class="email-addr">No shares yet.</div></div></div>
+      <div class="section-title">Most shared songs</div>
+      <div class="songs-list" id="shSongList"><div class="song-row"><div class="song-info"><div class="song-plays">No shares yet.</div></div></div></div>
+      <div class="empty-note" id="shNote" style="display:none"></div>
+    </div>
+
   </div>
 </div>
 
 <script>
 // Password — change this to whatever you want
 const ADMIN_PASSWORD = "embri2026";
+let adminPw = '';
+
+// Share stats (who shared, how many people opened their links, how many bought)
+async function loadShareStats(){
+  const note = document.getElementById('shNote');
+  try {
+    const res = await fetch('/api/share-stats', { headers: { 'x-admin-password': adminPw } });
+    if(res.status === 401){
+      note.style.display='block';
+      note.textContent='Share stats are locked. In Vercel, set ADMIN_PASSWORD to the same password you use here.';
+      return;
+    }
+    const d = await res.json();
+    if(!d.ok) throw new Error('share stats failed');
+    note.style.display='none';
+    document.getElementById('shTotalShares').textContent = d.totals.shares;
+    document.getElementById('shTotalOpens').textContent = d.totals.opens;
+    document.getElementById('shTotalSales').textContent = d.totals.sales;
+    document.getElementById('shSharers').textContent = d.totals.sharers;
+    note.style.display='block';
+    note.textContent = d.totals.grandfathered + ' early buyer device' + (d.totals.grandfathered===1?'':'s') + ' kept access from before the update.';
+    const esc = t => String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    if(d.sharers.length){
+      document.getElementById('shSharerList').innerHTML = d.sharers.map(x =>
+        '<div class="email-row"><div><div class="email-addr">'+esc(x.who)+'</div>' +
+        '<div class="email-date">code '+esc(x.code)+'</div></div>' +
+        '<div class="email-date" style="text-align:right">'+x.shares+' shared · '+x.opens+' opened · <b style="color:#4a8c52">'+x.sales+' bought</b></div></div>'
+      ).join('');
+    }
+    if(d.songs.length){
+      const max = d.songs[0].shares || 1;
+      document.getElementById('shSongList').innerHTML = d.songs.map((x,i) =>
+        '<div class="song-row"><div class="song-rank">'+String(i+1).padStart(2,'0')+'</div>' +
+        '<div class="song-info"><div class="song-name">'+esc(x.song)+'</div><div class="song-plays">'+x.shares+' shares</div></div>' +
+        '<div class="song-bar-wrap"><div class="song-bar-fill" style="width:'+(x.shares/max*100)+'%"></div></div></div>'
+      ).join('');
+    }
+  } catch(err){
+    console.error('Could not load share stats:', err);
+  }
+}
 
 function login(){
   const pw = document.getElementById('passwordInput').value;
   const err = document.getElementById('loginErr');
   if(pw === ADMIN_PASSWORD){
+    adminPw = pw;
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('dashboard').style.display='flex';
     loadRealData();
@@ -391,7 +450,7 @@ function logout(){
 
 function switchTab(name){
   document.querySelectorAll('.tab').forEach((t,i)=>{
-    const tabs=['overview','orders','music','fans','codes'];
+    const tabs=['overview','orders','music','fans','codes','shares'];
     t.classList.toggle('active', tabs[i]===name);
   });
   document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
@@ -469,6 +528,7 @@ function loadRealData(){
   };
 
   loadGlobalStats();
+  loadShareStats();
 }
 
 // Pull play counts from Redis (all listeners), overriding local-only numbers
