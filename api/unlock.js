@@ -9,6 +9,7 @@
 //                                                "pair" = a locked Embri app waiting to be unlocked
 //   { action: "approve", token }               -> buyer tapped their email link: unlock any of their apps that are waiting
 //   { action: "poll", pair }                   -> the waiting app checks whether it has been unlocked yet
+//   { action: "claim", email, device }         -> unlock right away by confirming the purchase email (up to 5 devices per email)
 //
 // Also needed for "Email me my album link":
 //   BREVO_API_KEY       same Brevo key as the Printful-Order-Webhook project
@@ -191,6 +192,31 @@ export default async function handler(req, res) {
       if (!email) return res.status(200).json({ ok: false });
       await redis.del(`pair:${pair}`);
       return res.status(200).json({ ok: true, token: v, code: await rememberSharer(email) });
+    }
+
+    if (body.action === 'claim') {
+      const email = String(body.email || '').trim().toLowerCase();
+      const device = String(body.device || '').replace(/[^a-z0-9]/gi, '').slice(0, 40);
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return res.status(200).json({ ok: false, error: 'Enter a valid email' });
+      // Slow down guessing: 15 tries per hour per network
+      const ipKey = `claimtries:${clientIp(req)}`;
+      const tries = await redis.incr(ipKey);
+      if (tries === 1) await redis.expire(ipKey, 3600);
+      if (tries > 15) return res.status(200).json({ ok: false, error: 'Too many tries. Please wait a bit and try again.' });
+      if (!(await emailBoughtAlbum(email))) {
+        return res.status(200).json({ ok: false, error: 'We couldn\u2019t find an album purchase for that email. Use the email you paid with.' });
+      }
+      // Each buyer's email can unlock up to 5 devices this way (their emailed link always works)
+      if (device.length >= 16) {
+        const devKey = `devices:${email}`;
+        const known = await redis.sismember(devKey, device);
+        if (!known) {
+          const count = await redis.scard(devKey);
+          if (count >= 5) return res.status(200).json({ ok: false, error: 'This email is already unlocked on 5 devices. Use the Download album link in your purchase email.' });
+          await redis.sadd(devKey, device);
+        }
+      }
+      return res.status(200).json({ ok: true, token: makeToken(email), code: await rememberSharer(email) });
     }
 
     if (body.action === 'songs') {
