@@ -162,6 +162,8 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
 #installNowRow button{background:#1f8f4e!important;font-size:0.8rem!important;font-weight:500;letter-spacing:2px;text-transform:uppercase;padding:1rem!important;}
 .install-steps b{font-weight:600;color:#111;}
 .sheet-overlay.open ~ .toast{bottom:auto;top:1.2rem;}
+.app-unlock{margin-top:0.8rem;font-size:0.75rem;color:#555;}
+.app-unlock span{color:#1f8f4e;font-weight:600;text-decoration:underline;cursor:pointer;}
 .install-hint{margin-top:0.9rem;padding:0.9rem 1rem;background:#f4faf6;border:1px solid #cfe8d8;font-size:0.82rem;line-height:1.55;color:#222;text-align:center;}
 .install-hint .ic{display:inline-flex;align-items:center;justify-content:center;min-width:1.5rem;height:1.5rem;padding:0 0.3rem;border:1px solid #ccc;border-radius:5px;background:#fff;margin:0 0.15rem;vertical-align:middle;}
 .install-hint b{font-weight:600;}
@@ -380,6 +382,7 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
     <div class="locked-notice" id="lockedNotice">
       <b>&#128274; 10 songs are locked</b><br>Unlock all 12 tracks of Evil Innocence for $14.99.<br>
       <button class="buy-now" onclick="buyAlbum()">Buy now</button>
+      <div class="app-unlock" id="appUnlock" style="display:none">Already bought it? <span onclick="openUnlockForm()">Unlock this app</span></div>
     </div>
     <div class="track-list" id="trackList"></div>
   </div>
@@ -489,12 +492,17 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
       <button class="sheet-btn cancel" onclick="closeMenu()">Cancel</button>
     </div>
     <div id="menuEmail" style="display:none">
-      <div class="sheet-title">Email me my album link</div>
+      <div class="sheet-title" id="emailTitle">Email me my album link</div>
       <div class="sheet-sub">For album buyers</div>
       <form class="sheet-form" onsubmit="sendAlbumLink(event)">
-        <p>Enter the email you used to buy the album. We'll send your personal link to play it on any phone or computer.</p>
+        <p id="emailIntro">Enter the email you used to buy the album. We'll send your personal link to play it on any phone or computer.</p>
         <div class="row"><input type="email" id="linkEmail" placeholder="your@email.com" required><button type="submit" id="linkBtn">Send</button></div>
         <div class="msg" id="linkMsg"></div>
+      </form>
+      <form class="sheet-form" id="codeForm" onsubmit="verifyCode(event)" style="display:none">
+        <p><b>Got the email?</b> Type the 6-digit code from it here to unlock right away.</p>
+        <div class="row"><input type="text" id="codeInput" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="123456" style="letter-spacing:4px;font-size:1.1rem"><button type="submit" id="codeBtn" style="background:#1f8f4e">Unlock</button></div>
+        <div class="msg" id="codeMsg"></div>
       </form>
       <button class="sheet-btn cancel" onclick="closeMenu()">Close</button>
     </div>
@@ -731,6 +739,7 @@ function renderTracks(){
   const notice=document.getElementById("lockedNotice");
   const sub=document.getElementById("listenSub");
   notice.style.display=(albumPurchased||document.getElementById("sharedBanner").style.display==="block")?"none":"block";
+  const au=document.getElementById("appUnlock");if(au)au.style.display=isStandalone()?"block":"none";
   if(albumPurchased)sub.textContent="12 tracks";
   else sub.innerHTML='<span class="locked-sub">&#128274; 2 free songs &middot; 10 locked</span>';
   list.innerHTML="";
@@ -1142,7 +1151,17 @@ async function installApp(){
   }
   showInstallHint('Click the <b>install</b> icon at the right end of the address bar.');
 }
+let passTimer=null;
+function carryPassForIphone(){
+  const ua=navigator.userAgent, ios=/iPhone|iPad|iPod/.test(ua)||(/Macintosh/.test(ua)&&'ontouchend' in document);
+  const tok=localStorage.getItem('embri_token');
+  if(!ios||!tok||isStandalone())return;
+  history.replaceState(null,'','/?unlock='+encodeURIComponent(tok)+'&app=1#listen');
+  clearTimeout(passTimer);
+  passTimer=setTimeout(()=>history.replaceState(null,'',window.location.pathname+'#listen'),180000);
+}
 function openMenuInstallTip(afterUnlocking){
+  carryPassForIphone();
   document.getElementById('installTitle').textContent=afterUnlocking===true?'Get the Embri app':'Add Embri to your Home Screen';
   document.getElementById('installSteps').innerHTML='<div class="install-intro">'+(afterUnlocking===true?'Your album is unlocked. ':'')+'Keep Embri on your phone like an app. It opens already unlocked and plays with no signal.</div>';
   document.getElementById('installHint').style.display='none';
@@ -1174,8 +1193,36 @@ function closeMenu(){document.getElementById('trackMenu').classList.remove('open
 function menuShare(kind){closeMenu();shareSong(kind==='album'?'album':menuSlug);}
 function showEmailForm(){
   document.getElementById('linkMsg').textContent='';
+  const app=isStandalone()&&!localStorage.getItem('embri_token');
+  document.getElementById('emailTitle').textContent=app?'Unlock the Embri app':'Email me my album link';
+  document.getElementById('emailIntro').textContent=app
+    ?'Enter the email you used to buy the album. We\u2019ll email you a 6-digit code to unlock this app.'
+    :'Enter the email you used to buy the album. We\u2019ll send your personal link (and a 6-digit code) to play it on any phone or computer.';
+  document.getElementById('codeForm').style.display=app?'block':'none';
+  document.getElementById('codeMsg').textContent='';
   showMenuPanel('menuEmail');
   setTimeout(()=>document.getElementById('linkEmail').focus(),50);
+}
+function openUnlockForm(){
+  showEmailForm();
+  document.getElementById('trackMenu').classList.add('open');
+  setTimeout(()=>document.getElementById('linkEmail').focus(),60);
+}
+async function verifyCode(e){
+  e.preventDefault();
+  const btn=document.getElementById('codeBtn'),msg=document.getElementById('codeMsg');
+  btn.disabled=true;msg.textContent='Checking\u2026';
+  try{
+    const r=await fetch('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'verify',email:document.getElementById('linkEmail').value,code:document.getElementById('codeInput').value})});
+    const d=await r.json();
+    if(!d.ok){msg.textContent=d.error||'That code didn\u2019t work.';btn.disabled=false;return;}
+    saveAccess(d);albumPurchased=true;
+    await loadSongs();renderTracks();closeMenu();
+    showToast(isStandalone()?'Embri app unlocked \u2713':'Album unlocked \u2713');
+    afterUnlock();
+  }catch(err){msg.textContent='Something went wrong. Try again.';}
+  btn.disabled=false;
 }
 async function sendAlbumLink(e){
   e.preventDefault();
@@ -1186,7 +1233,9 @@ async function sendAlbumLink(e){
       body:JSON.stringify({action:'restore',email:document.getElementById('linkEmail').value})});
     const d=await r.json();
     if(!r.ok)throw new Error(d.error||'failed');
-    msg.textContent='If that email bought the album, your link is on its way. Check your inbox (and spam).';
+    msg.textContent='If that email bought the album, it\u2019s on its way. Check your inbox (and junk).';
+    document.getElementById('codeForm').style.display='block';
+    setTimeout(()=>document.getElementById('codeInput').focus(),50);
   }catch(err){
     msg.textContent=err.message==='Enter a valid email'?err.message:'Something went wrong. Email hello@embriofficial.com and we\u2019ll help.';
   }
