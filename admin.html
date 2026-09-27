@@ -388,6 +388,16 @@ body{background:#f8f7f5;color:#111;font-family:'DM Sans',sans-serif;font-weight:
 const ADMIN_PASSWORD = "embri2026";
 let adminPw = '';
 
+// Which share rewards someone has earned
+function rewardsText(x){
+  const e=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const r=[];
+  if(x.opens>=1)r.push('memo');
+  if(x.opens>=3)r.push('$3 code'+(x.discount?' '+e(x.discount):''));
+  if(x.bag)r.push('<b style="color:#8B6347">bag sent'+(x.bag.name?' to '+e(x.bag.name)+', '+e(x.bag.city)+' '+e(x.bag.state_code):'')+'</b>');
+  else if(x.sales>=2)r.push('<b style="color:#d7263d">bag not claimed yet</b>');
+  return r.length?'Rewards: '+r.join(' · '):'';
+}
 // Share stats (who shared, how many people opened their links, how many bought)
 async function loadShareStats(){
   const note = document.getElementById('shNote');
@@ -412,7 +422,8 @@ async function loadShareStats(){
       document.getElementById('shSharerList').innerHTML = d.sharers.map(x =>
         '<div class="email-row"><div><div class="email-addr">'+esc(x.who)+'</div>' +
         '<div class="email-date">code '+esc(x.code)+'</div></div>' +
-        '<div class="email-date" style="text-align:right">'+x.shares+' shared · '+x.opens+' opened · <b style="color:#4a8c52">'+x.sales+' bought</b></div></div>'
+        '<div class="email-date" style="text-align:right">'+x.shares+' shared · '+x.opens+' opened · <b style="color:#4a8c52">'+x.sales+' bought</b>' +
+        '<br>'+rewardsText(x)+'</div></div>'
       ).join('');
     }
     if(d.songs.length){
