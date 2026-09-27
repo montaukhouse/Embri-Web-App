@@ -5,7 +5,8 @@
 //                                                returns an unlock token, and credits the sharer (ref) with the sale
 //   { action: "songs",   token }              -> gives a buyer the full song files
 //   { action: "legacy" }                       -> grandfathers a browser that was unlocked before the update
-//   { action: "restore", email }               -> if that email bought the album (per Stripe), emails them their link
+//   { action: "restore", email }               -> if that email bought the album (per Stripe), emails them their link + a 6-digit app code
+//   { action: "verify", email, code }          -> the 6-digit code unlocks this device (used inside the Embri app)
 //
 // Also needed for "Email me my album link":
 //   BREVO_API_KEY       same Brevo key as the Printful-Order-Webhook project
@@ -71,7 +72,7 @@ async function emailBoughtAlbum(email) {
   return false;
 }
 
-async function sendAlbumLink(email) {
+async function sendAlbumLink(email, code) {
   const link = `${SITE}/?unlock=${encodeURIComponent(makeToken(email))}#listen`;
   const appLink = `${SITE}/?unlock=${encodeURIComponent(makeToken(email))}&install=1#listen`;
   const r = await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -88,6 +89,11 @@ async function sendAlbumLink(email) {
           <p style="margin:24px 0"><a href="${link}" style="display:inline-block;background:#1f8f4e;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none">Listen to the album</a></p>
           <p style="margin:0 0 8px"><a href="${appLink}" style="display:inline-block;background:#1f8f4e;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none">📱 Get the Embri app</a></p>
           <p style="font-size:13px;color:#666;margin:0 0 20px">Keep the album on your phone like an app. It opens already unlocked and plays offline.</p>
+          ${code ? `<div style="margin:0 0 20px;padding:14px 16px;background:#f4faf6;border:1px solid #cfe8d8;border-radius:6px">
+            <div style="font-size:13px;color:#555;margin-bottom:6px">Already have the Embri app open? Type this code in the app to unlock it:</div>
+            <div style="font-size:28px;letter-spacing:6px;font-weight:bold;color:#111">${code}</div>
+            <div style="font-size:12px;color:#888;margin-top:6px">Code works for 30 minutes.</div>
+          </div>` : ''}
           <p style="font-size:13px;color:#666">It's your personal link, so save this email. Questions? Reply to hello@embriofficial.com.</p>
           <p style="font-size:13px;color:#666">— Embri</p>
         </div>`,
@@ -155,11 +161,29 @@ export default async function handler(req, res) {
     if (body.action === 'restore') {
       const email = String(body.email || '').trim().toLowerCase();
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return res.status(400).json({ ok: false, error: 'Enter a valid email' });
-      // One request per email per 10 minutes, so nobody can flood someone's inbox
-      const fresh = await redis.set(`restore:${email}`, 1, { nx: true, ex: 600 });
-      if (fresh && (await emailBoughtAlbum(email))) await sendAlbumLink(email);
+      // One request per email every 2 minutes, so nobody can flood someone's inbox
+      const fresh = await redis.set(`restore:${email}`, 1, { nx: true, ex: 120 });
+      if (fresh && (await emailBoughtAlbum(email))) {
+        const code = String(crypto.randomInt(100000, 1000000));
+        await redis.set(`code:${email}`, code, { ex: 1800 });
+        await redis.del(`codetries:${email}`);
+        await sendAlbumLink(email, code);
+      }
       // Same answer either way, so this can't be used to check who bought
       return res.status(200).json({ ok: true });
+    }
+
+    if (body.action === 'verify') {
+      const email = String(body.email || '').trim().toLowerCase();
+      const code = String(body.code || '').replace(/\D/g, '');
+      if (!email || code.length !== 6) return res.status(200).json({ ok: false, error: 'Enter the 6-digit code' });
+      const tries = await redis.incr(`codetries:${email}`);
+      if (tries === 1) await redis.expire(`codetries:${email}`, 1800);
+      if (tries > 6) return res.status(200).json({ ok: false, error: 'Too many tries. Tap Send again for a new code.' });
+      const saved = await redis.get(`code:${email}`);
+      if (!saved || String(saved) !== code) return res.status(200).json({ ok: false, error: 'That code doesn\u2019t match. Check the latest email.' });
+      await redis.del(`code:${email}`);
+      return res.status(200).json({ ok: true, token: makeToken(email), code: await rememberSharer(email) });
     }
 
     if (body.action === 'songs') {
