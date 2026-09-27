@@ -851,6 +851,7 @@ function showToast(msg){
 }
 const urlParams=new URLSearchParams(window.location.search);
 const wantsInstall=urlParams.get('install')==='1';
+if(wantsInstall&&isStandaloneEarly())setTimeout(()=>showToast('You already have the Embri app \u2713'),900);
 if(wantsInstall&&!urlParams.get('unlock')&&!isStandaloneEarly())setTimeout(()=>{goTo('listen');openMenuInstallTip(true);},800);
 function isStandaloneEarly(){return window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}
 if(urlParams.get('purchased')==='true'&&!urlParams.get('session_id')){
