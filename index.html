@@ -1196,20 +1196,29 @@ function openMenu(slug,ev){
   document.getElementById('mOfflineLabel').textContent=saved?'Remove offline copy':'Save album for offline';
   document.getElementById('mOfflineHint').textContent=saved?'Saved on this device \u2713':'Listen with no signal';
   document.getElementById('mInstall').style.display=isStandalone()?'none':'flex';
-  document.getElementById('mEmailLabel').textContent=albumPurchased?'Email me my album link':'Already bought? Email me my link';
+  document.getElementById('mEmailLabel').textContent=albumPurchased?'Email me my album link':'Already bought? Unlock with your email';
   showMenuPanel('menuMain');
   document.getElementById('trackMenu').classList.add('open');
 }
 function closeMenu(){document.getElementById('trackMenu').classList.remove('open');}
 function menuShare(kind){closeMenu();shareSong(kind==='album'?'album':menuSlug);}
+let emailMode='claim';
+function deviceId(){
+  let d=localStorage.getItem('embri_device');
+  if(!d){const a=new Uint8Array(12);crypto.getRandomValues(a);d=Array.from(a,x=>x.toString(16).padStart(2,'0')).join('');localStorage.setItem('embri_device',d);}
+  return d;
+}
 function showEmailForm(){
   document.getElementById('linkMsg').textContent='';
-  const app=isStandalone()&&!localStorage.getItem('embri_token');
-  document.getElementById('emailTitle').textContent=app?'Unlock the Embri app':'Email me my album link';
-  document.getElementById('emailIntro').textContent=app
-    ?'Enter the email you used to buy the album. Then tap Download album in the email and come back here. This app unlocks by itself.'
-    :'Enter the email you used to buy the album. We\u2019ll send your personal link to play it on any phone or computer.';
-
+  // Locked: confirm the purchase email and unlock right here. Unlocked: email yourself the album link.
+  emailMode=albumPurchased&&localStorage.getItem('embri_token')?'link':'claim';
+  const app=isStandalone();
+  document.getElementById('emailTitle').textContent=emailMode==='link'?'Email me my album link':(app?'Unlock the Embri app':'Unlock with your email');
+  document.getElementById('emailIntro').textContent=emailMode==='link'
+    ?'We\u2019ll send your personal link to play the album on any phone or computer.'
+    :'Enter the email you used to buy the album and it unlocks right away.';
+  document.getElementById('linkBtn').textContent=emailMode==='link'?'Send':'Unlock';
+  document.getElementById('linkBtn').style.background=emailMode==='link'?'':'#1f8f4e';
   showMenuPanel('menuEmail');
   setTimeout(()=>document.getElementById('linkEmail').focus(),50);
 }
@@ -1238,8 +1247,24 @@ function startPairing(){
   pairTimer=setInterval(pollPair,3000);
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&pairId)pollPair();});
+async function claimWithEmail(){
+  const btn=document.getElementById('linkBtn'),msg=document.getElementById('linkMsg');
+  btn.disabled=true;msg.textContent='Checking\u2026';
+  try{
+    const r=await fetch('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'claim',email:document.getElementById('linkEmail').value,device:deviceId()})});
+    const d=await r.json();
+    if(!d.ok){msg.textContent=d.error||'That didn\u2019t work. Try again.';btn.disabled=false;return;}
+    saveAccess(d);albumPurchased=true;
+    await loadSongs();renderTracks();closeMenu();
+    showToast(isStandalone()?'Embri app unlocked \u2713':'Album unlocked \u2713');
+    afterUnlock();
+  }catch(err){msg.textContent='Something went wrong. Try again.';}
+  btn.disabled=false;
+}
 async function sendAlbumLink(e){
   e.preventDefault();
+  if(emailMode==='claim')return claimWithEmail();
   const btn=document.getElementById('linkBtn'),msg=document.getElementById('linkMsg');
   btn.disabled=true;msg.textContent='Sending\u2026';
   try{
