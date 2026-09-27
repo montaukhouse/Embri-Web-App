@@ -77,6 +77,7 @@ async function emailBoughtAlbum(email) {
 
 async function sendAlbumLink(email) {
   const appLink = `${SITE}/?unlock=${encodeURIComponent(makeToken(email))}&install=1#listen`;
+  const shareLink = `${SITE}/?s=${shareCode(email)}`;
   const r = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: { 'api-key': process.env.BREVO_API_KEY, 'content-type': 'application/json', accept: 'application/json' },
@@ -89,6 +90,15 @@ async function sendAlbumLink(email) {
           <h2 style="margin:0 0 12px">Here's your album 🖤</h2>
           <p>Tap the button below to open all 12 tracks of <b>Evil Innocence</b> and keep them on your phone with the Embri app, even offline.</p>
           <p style="margin:24px 0"><a href="${appLink}" style="display:inline-block;background:#1f8f4e;color:#fff;padding:14px 26px;border-radius:6px;text-decoration:none;font-weight:bold;letter-spacing:1px">Download album</a></p>
+          <div style="border:1px solid #e5e1d8;padding:18px;margin:28px 0">
+            <p style="margin:0 0 10px;font-size:16px"><b>🖤 Share Evil Innocence, earn rewards</b></p>
+            <p style="margin:0 0 6px">Share with 1 friend → an exclusive bonus voice track</p>
+            <p style="margin:0 0 6px">Share with 3 friends → $3 off merch</p>
+            <p style="margin:0 0 14px">2 friends buy through your link → a free Embri goodie bag, mailed to you</p>
+            <p style="margin:0 0 6px;font-size:13px;color:#666">Your personal share link (press and hold to copy):</p>
+            <p style="margin:0;font-size:15px"><a href="${shareLink}" style="color:#d7263d">${shareLink.replace('https://', '')}</a></p>
+            <p style="margin:12px 0 0;font-size:13px;color:#666">We'll email you when you unlock a reward.</p>
+          </div>
           <p style="font-size:13px;color:#666">It's your personal link, so save this email. Questions? Reply to hello@embriofficial.com.</p>
           <p style="font-size:13px;color:#666">— Embri</p>
         </div>`,
