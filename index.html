@@ -56,6 +56,17 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
 .play-icon{width:8px;height:9px;margin-right:9px;fill:none;stroke:#fff;stroke-width:1.4;stroke-linejoin:round;flex-shrink:0;}
 .action-box.primary:hover{background:#333;border-color:#333;}
 .action-boxes{margin-bottom:1.6rem;}
+.action-box.listen-box{background:#1f8f4e;border-color:#1f8f4e;}
+.action-box.listen-box:hover{background:#18733e;border-color:#18733e;}
+.action-box.buy-box{background:#d7263d;border-color:#d7263d;padding:0.7rem 1rem;}
+.action-box.buy-box:hover{background:#b51d31;border-color:#b51d31;}
+.action-box.listen-box .box-label,.action-box.buy-box .box-label{color:#fff;text-transform:uppercase;font-size:0.75rem;font-weight:500;letter-spacing:2.5px;}
+.buy-now{display:inline-block;margin-top:0.7rem;background:#d7263d;color:#fff;border:none;font-family:'DM Sans',sans-serif;font-size:0.72rem;font-weight:500;letter-spacing:2.5px;text-transform:uppercase;padding:0.7rem 1.4rem;cursor:pointer;}
+.buy-now:hover{background:#b51d31;}
+.locked-sub{color:#d7263d;font-weight:500;}
+.locked-tag{color:#d7263d!important;opacity:1!important;}
+.track-row.locked{cursor:pointer!important;}
+.track-row.locked .track-icon{opacity:1!important;filter:none;}
 .store-content,.listen-content{flex:1;display:flex;flex-direction:column;align-items:center;padding:0.5rem 2rem 5rem;}
 .page-title{font-family:'Raleway',sans-serif;font-size:clamp(2.5rem,8vw,4rem);font-weight:100;letter-spacing:6px;text-transform:uppercase;margin-bottom:0.3rem;text-align:center;color:#111;}
 .page-sub{font-family:'DM Sans',sans-serif;font-size:0.65rem;font-weight:300;color:#bbb;letter-spacing:3px;text-transform:uppercase;margin-bottom:2.2rem;}
@@ -110,10 +121,13 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
 .stripe-pay-btn:hover{background:#333;}
 .stripe-note{font-size:0.6rem;color:#ccc;text-align:center;margin-top:0.7rem;}
 .stripe-badge{display:flex;align-items:center;justify-content:center;gap:0.3rem;margin-top:0.5rem;font-size:0.6rem;color:#ccc;}
-.locked-notice{width:100%;max-width:360px;margin-bottom:1.8rem;padding:0.9rem 1.2rem;background:#fffdf7;border:1px solid #ede8d8;font-size:0.7rem;color:#bbb;text-align:center;line-height:1.6;}
+.locked-notice{width:100%;max-width:360px;margin-bottom:1.8rem;padding:1.1rem 1.2rem;background:#fff5f6;border:1.5px solid #d7263d;font-size:0.78rem;color:#333;text-align:center;line-height:1.6;}
+.locked-notice b{color:#d7263d;font-weight:600;letter-spacing:0.5px;}
 .locked-notice span{color:#111;cursor:pointer;text-decoration:underline;}
 .track-list{width:100%;max-width:360px;}
-.track-row.locked .track-num,.track-row.locked .track-name,.track-row.locked .track-icon{opacity:0.3;}
+.track-row.locked .track-num{opacity:0.3;}
+.track-row.locked .track-name{color:#b5b5b5;}
+.shared-banner .buy-now{background:#d7263d;color:#fff;}
 .track-row,.track-more,.sheet,.sheet-btn,.toast,.locked-notice,.shared-banner,.mini-player{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
 .sheet-btn *{pointer-events:none;}
 .toast{pointer-events:none;z-index:600;}
@@ -206,7 +220,8 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
 </script>
 <script defer src="/_vercel/insights/script.js"></script>
-<link rel="manifest" href="/manifest.webmanifest">
+<link rel="manifest" id="appManifest" href="/manifest.webmanifest">
+<script>try{var _t=localStorage.getItem('embri_token');if(_t)document.getElementById('appManifest').href='/api/manifest?t='+encodeURIComponent(_t);}catch(e){}</script>
 <link rel="apple-touch-icon" href="/icon-180.png">
 <meta name="theme-color" content="#111111">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -227,8 +242,8 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
       <span class="stag-step3">out now</span>
     </div>
     <div class="action-boxes">
-      <div class="action-box primary" onclick="goTo('listen')"><span class="box-label"><svg class="play-icon" viewBox="0 0 12 14" aria-hidden="true"><polygon points="1,1 11,7 1,13"/></svg>tap to listen</span></div>
-      <div class="action-box" onclick="goTo('store')"><span class="box-label">buy</span></div>
+      <div class="action-box primary listen-box" onclick="goTo('listen')"><span class="box-label"><svg class="play-icon" viewBox="0 0 12 14" aria-hidden="true"><polygon points="1,1 11,7 1,13"/></svg>tap to listen</span></div>
+      <div class="action-box buy-box" onclick="goTo('store')"><span class="box-label">buy now</span></div>
     </div>
     <div class="email-section">
       <span class="email-label">stay in the loop</span>
@@ -350,7 +365,8 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
     <p class="page-sub" id="listenSub">2 free previews</p>
     <div class="shared-banner" id="sharedBanner"></div>
     <div class="locked-notice" id="lockedNotice">
-      <span onclick="goTo('store')">Buy the album</span> to unlock all 12 tracks.
+      <b>&#128274; 10 songs are locked</b><br>Unlock all 12 tracks of Evil Innocence for $14.99.<br>
+      <button class="buy-now" onclick="buyAlbum()">Buy now</button>
     </div>
     <div class="track-list" id="trackList"></div>
   </div>
@@ -470,9 +486,11 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
       <button class="sheet-btn cancel" onclick="closeMenu()">Close</button>
     </div>
     <div id="menuInstall" style="display:none">
-      <div class="sheet-title">Add Embri to your Home Screen</div>
+      <div class="sheet-title" id="installTitle">Add Embri to your Home Screen</div>
       <div class="sheet-sub">Takes 5 seconds</div>
-      <div class="sheet-form"><p id="installSteps"></p></div>
+      <div class="sheet-form"><p id="installSteps"></p>
+        <div class="row" id="installNowRow" style="display:none;border:none"><button type="button" style="flex:1;padding:0.85rem" onclick="installApp()">Install the Embri app</button></div>
+      </div>
       <button class="sheet-btn cancel" onclick="closeMenu()">Got it</button>
     </div>
   </div>
@@ -585,6 +603,10 @@ const PRODUCTS={
   tote:{name:'Evil Innocence Tote Bag',price:18.00,sized:false,colors:null,stripeLink:'https://buy.stripe.com/aFaeVf9gE4qLcyC2Bw93y09'},
   sushi_black:{name:'Sushi & Soju Tee',price:18.00,sized:true,colors:['Black','Cream','Pink'],stripeLink:'https://buy.stripe.com/5kQ7sN2Sg4qL4260to93y0a'}
 };
+function buyAlbum(){
+  showToast('Opening secure checkout\u2026');
+  buyProduct('album');
+}
 function buyProduct(item){
   const p=PRODUCTS[item];
   if(p.stripeLink){
@@ -695,7 +717,8 @@ function renderTracks(){
   const notice=document.getElementById("lockedNotice");
   const sub=document.getElementById("listenSub");
   notice.style.display=(albumPurchased||document.getElementById("sharedBanner").style.display==="block")?"none":"block";
-  sub.textContent=albumPurchased?"12 tracks":"2 free previews · 10 locked";
+  if(albumPurchased)sub.textContent="12 tracks";
+  else sub.innerHTML='<span class="locked-sub">&#128274; 2 free songs &middot; 10 locked</span>';
   list.innerHTML="";
   allTracks.forEach((t,i)=>{
     const canPlay=t.free||albumPurchased;
@@ -704,10 +727,10 @@ function renderTracks(){
     row.className="track-row"+(canPlay?"":" locked")+(playing?" playing":"")+(t.slug===sharedTrack?" shared":"");
     row.id="row-"+t.slug;
     row.innerHTML='<div class="track-num">'+String(i+1).padStart(2,"0")+'</div>'
-      +'<div class="track-name">'+t.name+(t.offlineUrl?'<span class="saved-tag">&#10003; offline</span>':'')+(t.free&&!albumPurchased?'<div class="track-tag">free preview</div>':'')+'</div>'
+      +'<div class="track-name">'+t.name+(t.offlineUrl?'<span class="saved-tag">&#10003; offline</span>':'')+(t.free&&!albumPurchased?'<div class="track-tag">free preview</div>':'')+(!canPlay?'<div class="track-tag locked-tag">locked &middot; tap to unlock</div>':'')+'</div>'
       +'<div class="track-more" role="button" aria-label="More options for '+t.name+'" onclick="openMenu(\''+t.slug+'\',event)"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></div>'
       +(canPlay?'<div class="track-icon">'+(playing&&isPlaying?'&#9646;&#9646;':'&#9654;')+'</div>':'<div class="track-icon">&#128274;</div>');
-    if(canPlay)row.onclick=()=>playTrack(i);
+    row.onclick=canPlay?()=>playTrack(i):()=>buyAlbum();
     list.appendChild(row);
   });
 }
@@ -819,7 +842,11 @@ if(urlParams.get('purchased')==='true'&&!urlParams.get('session_id')){
 }
 // ---------- Buyer access (unlock token) ----------
 function saveAccess(d){
-  if(d.token)localStorage.setItem('embri_token',d.token);
+  if(d.token){
+    localStorage.setItem('embri_token',d.token);
+    const m=document.getElementById('appManifest');
+    if(m)m.href='/api/manifest?t='+encodeURIComponent(d.token);
+  }
   if(d.code)localStorage.setItem('embri_code',d.code);
   albumPurchased=true;
   localStorage.setItem('embri_album_purchased','true');
@@ -843,20 +870,23 @@ if(urlParams.get('session_id')){
   fetch('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({action:'session',session_id:urlParams.get('session_id'),ref:localStorage.getItem('embri_ref')||''})})
   .then(r=>r.json()).then(d=>{
-    if(d.ok){saveAccess(d);loadSongs();renderTracks();showToast('Payment confirmed \u2014 album unlocked!');}
+    if(d.ok){saveAccess(d);loadSongs();renderTracks();showToast('Payment confirmed \u2014 album unlocked!');afterUnlock();}
     else showToast('Check your email for your album link');
   }).catch(err=>console.error(err));
   cleanUrl();
 }
 // Personal link from the album email (?unlock=...) — works in any browser
-if(urlParams.get('unlock')){
+if(urlParams.get('unlock')&&urlParams.get('unlock')===localStorage.getItem('embri_token')){
+  albumPurchased=true;loadSongs();cleanUrl();
+}else if(urlParams.get('unlock')){
   const tok=urlParams.get('unlock');
   fetch('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({action:'check',token:tok})})
   .then(r=>r.json()).then(d=>{
     if(d.ok){
       saveAccess({token:tok,code:d.code});loadSongs();renderTracks();
-      showToast('Welcome back \u2014 album unlocked!');
+      showToast(isStandalone()?'Embri app unlocked \u2713':'Welcome back \u2014 album unlocked!');
+      afterUnlock();
     }else{showToast('That unlock link is not valid');}
   }).catch(()=>showToast('Could not check your link \u2014 try again'));
   cleanUrl();
@@ -913,11 +943,11 @@ if(urlParams.get('s')){
   const b=document.getElementById('sharedBanner');
   if(!albumPurchased){
     if(t&&!t.free){
-      b.innerHTML='<b>'+t.name+'</b> was shared with you.<br>Buy the album to hear it, or play the 2 free songs below.<br><button onclick="goTo(\'store\')">Buy the album</button>';
+      b.innerHTML='<b>'+t.name+'</b> was shared with you.<br>Buy the album to hear it, or play the 2 free songs below.<br><button class="buy-now" onclick="buyAlbum()">Buy now</button>';
     }else if(t){
       b.innerHTML='<b>'+t.name+'</b> was shared with you.<br>Tap it below to play.';
     }else{
-      b.innerHTML='<b>Evil Innocence</b> was shared with you.<br>Play the 2 free songs below, or unlock all 12.<br><button onclick="goTo(\'store\')">Buy the album</button>';
+      b.innerHTML='<b>Evil Innocence</b> was shared with you.<br>Play the 2 free songs below, or unlock all 12.<br><button class="buy-now" onclick="buyAlbum()">Buy now</button>';
     }
     b.style.display='block';
   }
@@ -982,21 +1012,25 @@ function isAlbumSaved(){return allTracks.filter(t=>t.free||albumPurchased).every
 let saving=false;
 async function toggleOffline(){
   closeMenu();
+  if(!isAlbumSaved())return saveOffline(false);
   if(isAlbumSaved()){
     if(!confirm('Remove the offline copy from this device? You can still stream it anytime.'))return;
     await dbDo('readwrite',st=>st.clear());
     allTracks.forEach(t=>{if(t.offlineUrl){URL.revokeObjectURL(t.offlineUrl);delete t.offlineUrl;}});
     renderTracks();showToast('Offline copy removed');return;
   }
+}
+async function saveOffline(auto){
   if(saving)return;
-  if(!albumPurchased){showToast('Buy the album to save it for offline');return;}
+  if(!albumPurchased){if(!auto)showToast('Buy the album to save it for offline');return;}
   if(!navigator.onLine){showToast('Connect to the internet to save the album');return;}
   saving=true;
   try{
     await accessReady;await loadSongs();
     if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
+    if(allTracks.some(t=>!t.url&&!t.offlineUrl))throw new Error('songs not loaded');
     const todo=allTracks.filter(t=>!t.offlineUrl&&t.url);
-    if(!todo.length)throw new Error('no songs');
+    if(!todo.length){saving=false;return;}
     let n=allTracks.length-todo.length;
     for(const t of todo){
       showToast('Saving for offline\u2026 '+(++n)+' of '+allTracks.length);
@@ -1008,7 +1042,8 @@ async function toggleOffline(){
       renderTracks();
     }
     showToast('Album saved \u2014 plays with no signal \u2713');
-    if(!isStandalone())setTimeout(()=>{openMenuInstallTip();},2900);
+    try{localStorage.setItem('embri_autosaved','1');}catch(e){}
+    if(!isStandalone()&&!auto)setTimeout(()=>{openMenuInstallTip();},2900);
   }catch(e){
     console.error(e);
     showToast(e.name==='QuotaExceededError'?'Not enough space on this device':'Could not save for offline \u2014 try again');
@@ -1016,6 +1051,22 @@ async function toggleOffline(){
   saving=false;
 }
 loadOffline();
+
+// After someone unlocks in the browser: offer the Embri app once
+function afterUnlock(){
+  if(isStandalone()){setTimeout(()=>autoSaveInApp(),1200);return;}
+  try{if(localStorage.getItem('embri_app_offered'))return;localStorage.setItem('embri_app_offered','1');}catch(e){}
+  setTimeout(()=>openMenuInstallTip(true),3000);
+}
+// Inside the Embri app: save the album offline automatically the first time
+async function autoSaveInApp(){
+  if(!isStandalone()||!albumPurchased||!navigator.onLine)return;
+  try{if(localStorage.getItem('embri_autosaved'))return;}catch(e){}
+  await accessReady;
+  if(!localStorage.getItem('embri_token'))return;
+  if(!isAlbumSaved())saveOffline(true);
+}
+window.addEventListener('load',()=>setTimeout(autoSaveInApp,1500));
 
 // ---------- Home Screen app ----------
 function isStandalone(){return window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}
@@ -1029,10 +1080,12 @@ function installSteps(){
 }
 async function installApp(){
   if(installPrompt){closeMenu();installPrompt.prompt();try{await installPrompt.userChoice;}catch(e){}installPrompt=null;return;}
-  openMenuInstallTip(true);
+  openMenuInstallTip();
 }
-function openMenuInstallTip(){
-  document.getElementById('installSteps').innerHTML=installSteps();
+function openMenuInstallTip(afterUnlocking){
+  document.getElementById('installTitle').textContent=afterUnlocking===true?'Get the Embri app':'Add Embri to your Home Screen';
+  document.getElementById('installSteps').innerHTML=(afterUnlocking===true?'Your album is unlocked. Keep it on your phone as an app: it opens unlocked and plays offline.<br><br>':'')+(installPrompt?'':installSteps());
+  document.getElementById('installNowRow').style.display=installPrompt?'flex':'none';
   showMenuPanel('menuInstall');
   document.getElementById('trackMenu').classList.add('open');
 }
