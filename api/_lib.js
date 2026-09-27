@@ -44,6 +44,7 @@ export function readToken(token) {
   return crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(good)) ? email : null;
 }
 
+
 // Short personal share code for a buyer, e.g. "k3f9x2ab". Doesn't reveal their email.
 export function shareCode(email) {
   return b64url(hmac('share:' + email.trim().toLowerCase())).replace(/[-_]/g, '').slice(0, 8).toLowerCase();
