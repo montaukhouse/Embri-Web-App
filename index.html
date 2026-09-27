@@ -499,11 +499,6 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
         <div class="row"><input type="email" id="linkEmail" placeholder="your@email.com" required><button type="submit" id="linkBtn">Send</button></div>
         <div class="msg" id="linkMsg"></div>
       </form>
-      <form class="sheet-form" id="codeForm" onsubmit="verifyCode(event)" style="display:none">
-        <p><b>Got the email?</b> Type the 6-digit code from it here to unlock right away.</p>
-        <div class="row"><input type="text" id="codeInput" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="123456" style="letter-spacing:4px;font-size:1.1rem"><button type="submit" id="codeBtn" style="background:#1f8f4e">Unlock</button></div>
-        <div class="msg" id="codeMsg"></div>
-      </form>
       <button class="sheet-btn cancel" onclick="closeMenu()">Close</button>
     </div>
     <div id="menuInstall" style="display:none">
@@ -903,9 +898,22 @@ if(urlParams.get('session_id')){
   cleanUrl();
 }
 // Personal link from the album email (?unlock=...) — works in any browser
+function approveWaitingApps(tok){
+  if(isStandalone())return Promise.resolve(0);
+  return fetch('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'approve',token:tok})})
+    .then(r=>r.json()).then(d=>d.approved||0).catch(()=>0);
+}
+function appWasUnlocked(){
+  showToast('Your Embri app is unlocked \u2713 Go back to the app');
+  setTimeout(()=>showToast('Your Embri app is unlocked \u2713 Go back to the app'),3000);
+}
 if(urlParams.get('unlock')&&urlParams.get('unlock')===localStorage.getItem('embri_token')){
+  const tok0=urlParams.get('unlock');
   albumPurchased=true;loadSongs();cleanUrl();
-  if(wantsInstall&&!isStandalone())setTimeout(()=>{goTo('listen');openMenuInstallTip(true);},600);
+  approveWaitingApps(tok0).then(n=>{
+    if(n)appWasUnlocked();
+    else if(wantsInstall&&!isStandalone())setTimeout(()=>{goTo('listen');openMenuInstallTip(true);},300);
+  });
 }else if(urlParams.get('unlock')){
   const tok=urlParams.get('unlock');
   fetch('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},
@@ -914,7 +922,7 @@ if(urlParams.get('unlock')&&urlParams.get('unlock')===localStorage.getItem('embr
     if(d.ok){
       saveAccess({token:tok,code:d.code});loadSongs();renderTracks();
       showToast(isStandalone()?'Embri app unlocked \u2713':'Welcome back \u2014 album unlocked!');
-      afterUnlock();
+      approveWaitingApps(tok).then(n=>{if(n)appWasUnlocked();else afterUnlock();});
     }else{showToast('That unlock link is not valid');}
   }).catch(()=>showToast('Could not check your link \u2014 try again'));
   cleanUrl();
@@ -1096,6 +1104,9 @@ async function autoSaveInApp(){
   if(!isAlbumSaved())saveOffline(true);
 }
 window.addEventListener('load',()=>setTimeout(autoSaveInApp,1500));
+window.addEventListener('load',()=>setTimeout(()=>{
+  if(isStandalone()&&!albumPurchased&&!localStorage.getItem('embri_token')&&!urlParams.get('unlock')){goTo('listen');openUnlockForm();}
+},900));
 
 // ---------- Home Screen app ----------
 function isStandalone(){return window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}
@@ -1141,7 +1152,7 @@ async function installApp(){
     return;
   }
   if(ios){
-    showInstallHint('Apple needs one tap from you:<br>tap Share <span class="ic">&#8679;</span> in Safari, then <b>Add to Home Screen</b>.');
+    showInstallHint('Apple needs one tap from you:<br>tap Share <span class="ic">&#8679;</span> in Safari, then <b>Add to Home Screen</b>.<br><span style="color:#888;font-size:0.72rem">Added Embri before? Delete the old icon first, then add it again.</span>');
     return;
   }
   // 4) Chrome that isn't ready for one-tap yet
@@ -1196,10 +1207,9 @@ function showEmailForm(){
   const app=isStandalone()&&!localStorage.getItem('embri_token');
   document.getElementById('emailTitle').textContent=app?'Unlock the Embri app':'Email me my album link';
   document.getElementById('emailIntro').textContent=app
-    ?'Enter the email you used to buy the album. We\u2019ll email you a 6-digit code to unlock this app.'
-    :'Enter the email you used to buy the album. We\u2019ll send your personal link (and a 6-digit code) to play it on any phone or computer.';
-  document.getElementById('codeForm').style.display=app?'block':'none';
-  document.getElementById('codeMsg').textContent='';
+    ?'Enter the email you used to buy the album. Then tap Download album in the email and come back here. This app unlocks by itself.'
+    :'Enter the email you used to buy the album. We\u2019ll send your personal link to play it on any phone or computer.';
+
   showMenuPanel('menuEmail');
   setTimeout(()=>document.getElementById('linkEmail').focus(),50);
 }
@@ -1208,34 +1218,41 @@ function openUnlockForm(){
   document.getElementById('trackMenu').classList.add('open');
   setTimeout(()=>document.getElementById('linkEmail').focus(),60);
 }
-async function verifyCode(e){
-  e.preventDefault();
-  const btn=document.getElementById('codeBtn'),msg=document.getElementById('codeMsg');
-  btn.disabled=true;msg.textContent='Checking\u2026';
+// A locked Embri app waits here until the buyer taps Download album in their email
+let pairId=null,pairTimer=null,pairUntil=0;
+function newPairId(){const a=new Uint8Array(16);crypto.getRandomValues(a);return Array.from(a,x=>x.toString(16).padStart(2,'0')).join('');}
+async function pollPair(){
+  if(!pairId||Date.now()>pairUntil){clearInterval(pairTimer);return;}
   try{
-    const r=await fetch('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'verify',email:document.getElementById('linkEmail').value,code:document.getElementById('codeInput').value})});
+    const r=await fetch('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'poll',pair:pairId})});
     const d=await r.json();
-    if(!d.ok){msg.textContent=d.error||'That code didn\u2019t work.';btn.disabled=false;return;}
-    saveAccess(d);albumPurchased=true;
-    await loadSongs();renderTracks();closeMenu();
-    showToast(isStandalone()?'Embri app unlocked \u2713':'Album unlocked \u2713');
-    afterUnlock();
-  }catch(err){msg.textContent='Something went wrong. Try again.';}
-  btn.disabled=false;
+    if(d.ok){
+      clearInterval(pairTimer);pairId=null;
+      saveAccess(d);albumPurchased=true;await loadSongs();renderTracks();closeMenu();
+      showToast('Embri app unlocked \u2713');afterUnlock();
+    }
+  }catch(e){}
 }
+function startPairing(){
+  clearInterval(pairTimer);pairUntil=Date.now()+30*60*1000;
+  pairTimer=setInterval(pollPair,3000);
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&pairId)pollPair();});
 async function sendAlbumLink(e){
   e.preventDefault();
   const btn=document.getElementById('linkBtn'),msg=document.getElementById('linkMsg');
   btn.disabled=true;msg.textContent='Sending\u2026';
   try{
+    const inApp=isStandalone()&&!localStorage.getItem('embri_token');
+    if(inApp&&!pairId)pairId=newPairId();
     const r=await fetch('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({action:'restore',email:document.getElementById('linkEmail').value})});
+      body:JSON.stringify({action:'restore',email:document.getElementById('linkEmail').value,pair:inApp?pairId:undefined})});
     const d=await r.json();
     if(!r.ok)throw new Error(d.error||'failed');
-    msg.textContent='If that email bought the album, it\u2019s on its way. Check your inbox (and junk).';
-    document.getElementById('codeForm').style.display='block';
-    setTimeout(()=>document.getElementById('codeInput').focus(),50);
+    if(inApp){
+      msg.innerHTML='Email sent. Open it, tap <b>Download album</b>, then come back here. This app will unlock by itself.';
+      startPairing();
+    }else msg.textContent='If that email bought the album, it\u2019s on its way. Check your inbox (and junk).';
   }catch(err){
     msg.textContent=err.message==='Enter a valid email'?err.message:'Something went wrong. Email hello@embriofficial.com and we\u2019ll help.';
   }
