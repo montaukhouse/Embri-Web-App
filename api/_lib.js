@@ -53,3 +53,57 @@ export function shareCode(email) {
 export function clientIp(req) {
   return req.headers['x-forwarded-for']?.split(',')[0] || req.socket?.remoteAddress || 'unknown';
 }
+
+// ---------- Share rewards ----------
+// 1 friend opens your link  -> exclusive bonus voice track
+// 3 friends open your link  -> $3 off merch (one-time code)
+// 2 friends buy the album   -> free goodie bag (pins, sticker, lyric card), shipped by Printful
+export const REWARDS = { memoOpens: 1, discountOpens: 3, bagSales: 2 };
+export const BONUS_MEMO = {
+  name: 'Wasting Time — Exclusive Bonus Voice Track',
+  url: 'https://res.cloudinary.com/yyq1iype/video/upload/v1790544358/bonus-voice-memo.mp3',
+};
+// Printful "External ID"s of the goodie bag items (shown with a # in Printful)
+export const GOODIE_BAG_ITEMS = ['6ab96b5f093913', '6ab9677e5bb437', '6ab97441825788'];
+
+export const SITE = process.env.SITE_URL || 'https://embriofficial.com';
+
+export async function sendEmail({ to, subject, html }) {
+  const r = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: { 'api-key': process.env.BREVO_API_KEY, 'content-type': 'application/json', accept: 'application/json' },
+    body: JSON.stringify({
+      sender: { name: 'Embri', email: process.env.ALBUM_EMAIL_SENDER },
+      to: [{ email: to }],
+      subject,
+      htmlContent: `<div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:24px;color:#111">${html}<p style="font-size:13px;color:#666">— Embri</p></div>`,
+    }),
+  });
+  if (!r.ok) throw new Error(`Brevo ${r.status}: ${await r.text()}`);
+}
+
+const REWARD_EMAILS = {
+  memo: ['You unlocked an exclusive bonus voice track 🖤', 'Someone opened the song you shared. As a thank you, there’s an exclusive bonus voice track from me waiting for you.'],
+  discount: ['You unlocked $3 off merch 🖤', 'Three friends opened your link. Your one-time $3 off merch code is waiting for you.'],
+  bag: ['You earned a free Embri goodie bag 🖤', 'Two friends bought Evil Innocence through your link. Your goodie bag is ready. Add your address and it ships free.'],
+};
+
+// Emails a buyer when they reach a reward. Guests have no email on file, so they see it on the site instead.
+export async function notifyReward(redis, code, kind) {
+  try {
+    const email = await redis.hget('share:who', code);
+    if (!email || !String(email).includes('@')) return;
+    const first = await redis.set(`rewards:notified:${kind}:${code}`, 1, { nx: true });
+    if (!first) return;
+    const [subject, text] = REWARD_EMAILS[kind];
+    const link = `${SITE}/?unlock=${encodeURIComponent(makeToken(String(email)))}&rewards=1#listen`;
+    await sendEmail({
+      to: String(email),
+      subject,
+      html: `<h2 style="margin:0 0 12px">${subject}</h2><p>${text}</p>
+        <p style="margin:24px 0"><a href="${link}" style="display:inline-block;background:#111;color:#fff;padding:14px 26px;border-radius:6px;text-decoration:none;font-weight:bold;letter-spacing:1px">See my rewards</a></p>`,
+    });
+  } catch (err) {
+    console.error('Reward email failed', err);
+  }
+}

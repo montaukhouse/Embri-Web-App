@@ -22,7 +22,7 @@
 
 import { Redis } from '@upstash/redis';
 import crypto from 'crypto';
-import { TRACKS, makeToken, readToken, shareCode, clientIp } from './_lib.js';
+import { TRACKS, makeToken, readToken, shareCode, clientIp, REWARDS, notifyReward } from './_lib.js';
 
 // Buyers who unlocked before the update keep access, with no deadline: the first time their
 // browser visits, it's switched to a permanent token. (Optional: set GRANDFATHER_UNTIL to a date to stop this.)
@@ -130,9 +130,10 @@ export default async function handler(req, res) {
       if (ref && ref !== code) {
         const first = await redis.set(`share:sale:${id}`, ref, { nx: true });
         if (first) {
-          await redis.incr(`share:sales:${ref}`);
+          const sales = await redis.incr(`share:sales:${ref}`);
           await redis.incr('share:sales:total');
           await redis.sadd('share:codes', ref);
+          if (sales === REWARDS.bagSales) await notifyReward(redis, ref, 'bag');
         }
       }
       return res.status(200).json({ ok: true, token: makeToken(email), code });

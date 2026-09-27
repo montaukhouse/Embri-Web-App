@@ -24,12 +24,16 @@ export default async function handler(req, res) {
       const shares = await redis.mget(...codes.map((c) => `share:shares:${c}`));
       const opens = await redis.mget(...codes.map((c) => `share:opens:${c}`));
       const sales = await redis.mget(...codes.map((c) => `share:sales:${c}`));
+      const bags = await redis.mget(...codes.map((c) => `rewards:bag:${c}`));
+      const discounts = await redis.mget(...codes.map((c) => `rewards:discount:${c}`));
       sharers = codes.map((c, i) => ({
         code: c,
         who: who[c] || (c.startsWith('g') && c.length > 8 ? 'Guest (not a buyer)' : 'Unknown'),
         shares: Number(shares[i] || 0),
         opens: Number(opens[i] || 0),
         sales: Number(sales[i] || 0),
+        bag: bags[i] ? (String(bags[i]).startsWith('{') ? JSON.parse(bags[i]) : true) : null,
+        discount: discounts[i] || null,
       }));
       sharers.sort((a, b) => b.sales - a.sales || b.opens - a.opens || b.shares - a.shares);
     }

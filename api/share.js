@@ -3,7 +3,7 @@
 //   { event: "open",  code, track }  someone opened a shared link (counted once per person per sharer)
 
 import { Redis } from '@upstash/redis';
-import { TRACKS, clientIp } from './_lib.js';
+import { TRACKS, clientIp, REWARDS, notifyReward } from './_lib.js';
 
 const redis = Redis.fromEnv();
 
@@ -27,8 +27,11 @@ export default async function handler(req, res) {
     // Opens: one per person (IP) per sharer, no expiry — same approach as play counts
     const first = await redis.set(`share:opened:${code}:${clientIp(req)}`, 1, { nx: true });
     if (first) {
-      await redis.incr(`share:opens:${code}`);
+      const opens = await redis.incr(`share:opens:${code}`);
       await redis.incr('share:opens:total');
+      // Rewards: email buyers when their link unlocks something
+      if (opens === REWARDS.memoOpens) await notifyReward(redis, code, 'memo');
+      if (opens === REWARDS.discountOpens) await notifyReward(redis, code, 'discount');
     }
     return res.status(200).json({ ok: true, counted: !!first });
   } catch (err) {
