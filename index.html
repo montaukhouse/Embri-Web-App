@@ -154,6 +154,19 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
 .sheet-form .row{display:flex;border:1px solid #e5e1d8;}
 .sheet-form input{flex:1;border:none;padding:0.8rem;font-family:'DM Sans',sans-serif;font-size:0.85rem;outline:none;min-width:0;}
 .sheet-form button{border:none;background:#111;color:#fff;font-family:'DM Sans',sans-serif;font-size:0.7rem;letter-spacing:1px;padding:0 1rem;cursor:pointer;}
+.install-steps{list-style:none;margin:0.2rem 0 0.4rem;padding:0;text-align:left;counter-reset:st;}
+.install-steps li{counter-increment:st;display:flex;align-items:center;gap:0.8rem;padding:0.65rem 0;border-top:1px solid #f3f0ea;font-size:0.8rem;color:#222;line-height:1.4;}
+.install-steps li:first-child{border-top:none;}
+.install-steps li::before{content:counter(st);flex-shrink:0;width:1.5rem;height:1.5rem;border-radius:50%;background:#111;color:#fff;font-size:0.7rem;display:flex;align-items:center;justify-content:center;}
+.install-steps .ic{display:inline-flex;align-items:center;justify-content:center;min-width:1.4rem;height:1.4rem;padding:0 0.3rem;border:1px solid #ddd;border-radius:5px;font-size:0.85rem;margin:0 0.15rem;vertical-align:middle;background:#fafafa;}
+#installNowRow button{background:#1f8f4e!important;font-size:0.8rem!important;font-weight:500;letter-spacing:2px;text-transform:uppercase;padding:1rem!important;}
+.install-steps b{font-weight:600;color:#111;}
+.sheet-overlay.open ~ .toast{bottom:auto;top:1.2rem;}
+.install-hint{margin-top:0.9rem;padding:0.9rem 1rem;background:#f4faf6;border:1px solid #cfe8d8;font-size:0.82rem;line-height:1.55;color:#222;text-align:center;}
+.install-hint .ic{display:inline-flex;align-items:center;justify-content:center;min-width:1.5rem;height:1.5rem;padding:0 0.3rem;border:1px solid #ccc;border-radius:5px;background:#fff;margin:0 0.15rem;vertical-align:middle;}
+.install-hint b{font-weight:600;}
+.install-note{font-size:0.7rem;color:#8B6347;margin-top:0.3rem;text-align:center;}
+.install-intro{font-size:0.75rem;color:#555;text-align:center;margin:0 0 0.6rem;line-height:1.5;}
 .sheet-form .msg{font-size:0.7rem;color:#8B6347;text-align:center;min-height:1rem;margin-top:0.6rem;}
 .track-row.shared{background:#fffdf7;box-shadow:inset 3px 0 0 #8B6347;}
 .shared-banner{display:none;width:100%;max-width:360px;margin-bottom:1rem;padding:0.9rem 1.2rem;background:#111;color:#fff;font-size:0.72rem;text-align:center;line-height:1.6;}
@@ -471,7 +484,7 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
       <button class="sheet-btn" onclick="menuShare('song')"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 002 2h10a2 2 0 002-2v-6"/></svg><span>Share song</span></button>
       <button class="sheet-btn" onclick="menuShare('album')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/></svg><span>Share album</span></button>
       <button class="sheet-btn" id="mOffline" onclick="toggleOffline()"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 20h14"/></svg><span><span id="mOfflineLabel">Save album for offline</span><span class="hint" id="mOfflineHint">Listen with no signal</span></span></button>
-      <button class="sheet-btn" id="mInstall" onclick="installApp()"><svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg><span>Add Embri app to Home Screen<span class="hint">Opens like an app, works offline</span></span></button>
+      <button class="sheet-btn" id="mInstall" onclick="openMenuInstallTip()"><svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg><span>Add Embri app to Home Screen<span class="hint">Opens like an app, works offline</span></span></button>
       <button class="sheet-btn" onclick="showEmailForm()"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><span id="mEmailLabel">Email me my album link</span></button>
       <button class="sheet-btn cancel" onclick="closeMenu()">Cancel</button>
     </div>
@@ -488,10 +501,11 @@ nav{padding:0.5rem 2rem;display:flex;justify-content:space-between;align-items:c
     <div id="menuInstall" style="display:none">
       <div class="sheet-title" id="installTitle">Add Embri to your Home Screen</div>
       <div class="sheet-sub">Takes 5 seconds</div>
-      <div class="sheet-form"><p id="installSteps"></p>
-        <div class="row" id="installNowRow" style="display:none;border:none"><button type="button" style="flex:1;padding:0.85rem" onclick="installApp()">Install the Embri app</button></div>
+      <div class="sheet-form"><div id="installSteps"></div>
+        <div class="row" id="installNowRow" style="border:none"><button type="button" style="flex:1;padding:0.85rem" onclick="installApp()">Install the Embri app</button></div>
+        <div class="install-hint" id="installHint" style="display:none"></div>
       </div>
-      <button class="sheet-btn cancel" onclick="closeMenu()">Got it</button>
+      <button class="sheet-btn cancel" onclick="closeMenu()">Not now</button>
     </div>
   </div>
 </div>
@@ -836,6 +850,9 @@ function showToast(msg){
   setTimeout(()=>t.classList.remove("show"),2800);
 }
 const urlParams=new URLSearchParams(window.location.search);
+const wantsInstall=urlParams.get('install')==='1';
+if(wantsInstall&&!urlParams.get('unlock')&&!isStandaloneEarly())setTimeout(()=>{goTo('listen');openMenuInstallTip(true);},800);
+function isStandaloneEarly(){return window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}
 if(urlParams.get('purchased')==='true'&&!urlParams.get('session_id')){
   showToast('Check your email for your album link');
   history.replaceState(null,'',window.location.pathname+window.location.hash);
@@ -878,6 +895,7 @@ if(urlParams.get('session_id')){
 // Personal link from the album email (?unlock=...) — works in any browser
 if(urlParams.get('unlock')&&urlParams.get('unlock')===localStorage.getItem('embri_token')){
   albumPurchased=true;loadSongs();cleanUrl();
+  if(wantsInstall&&!isStandalone())setTimeout(()=>{goTo('listen');openMenuInstallTip(true);},600);
 }else if(urlParams.get('unlock')){
   const tok=urlParams.get('unlock');
   fetch('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},
@@ -1055,6 +1073,7 @@ loadOffline();
 // After someone unlocks in the browser: offer the Embri app once
 function afterUnlock(){
   if(isStandalone()){setTimeout(()=>autoSaveInApp(),1200);return;}
+  if(wantsInstall){try{localStorage.setItem('embri_app_offered','1');}catch(e){}setTimeout(()=>openMenuInstallTip(true),600);return;}
   try{if(localStorage.getItem('embri_app_offered'))return;localStorage.setItem('embri_app_offered','1');}catch(e){}
   setTimeout(()=>openMenuInstallTip(true),3000);
 }
@@ -1071,21 +1090,61 @@ window.addEventListener('load',()=>setTimeout(autoSaveInApp,1500));
 // ---------- Home Screen app ----------
 function isStandalone(){return window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}
 let installPrompt=null;
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;});
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;refreshInstallPanel();});
+window.addEventListener('appinstalled',()=>{installPrompt=null;closeMenu();showToast('Embri app added \u2713 Open it from your Home Screen');});
 function installSteps(){
   const ua=navigator.userAgent;
-  if(/iPhone|iPad|iPod/.test(ua))return 'In Safari, tap the <b>Share</b> button (the square with an arrow), then <b>Add to Home Screen</b>, then <b>Add</b>. Embri will show up with your other apps.';
-  if(/Android/.test(ua))return 'Tap the browser menu (<b>&#8942;</b>), then <b>Add to Home screen</b> or <b>Install app</b>.';
-  return 'In Chrome or Edge, click the <b>install</b> icon at the right end of the address bar. In Safari on Mac, choose <b>File &rarr; Add to Dock</b>.';
+  const SHARE='<span class="ic">&#8679;</span>', DOTS='<span class="ic">&#8942;</span>', MENU='<span class="ic">&#9776;</span>';
+  const li=a=>'<ol class="install-steps">'+a.map(x=>'<li><span>'+x+'</span></li>').join('')+'</ol>';
+  const ios=/iPhone|iPad|iPod/.test(ua)||(/Macintosh/.test(ua)&&'ontouchend' in document);
+  if(ios&&/CriOS|FxiOS|EdgiOS/.test(ua))return li(['Tap the Share button '+SHARE+' in the address bar (or in the '+DOTS+' menu)','Scroll down and tap <b>Add to Home Screen</b>','Tap <b>Add</b> (top right)'])+'<div class="install-note">Tip: if you don’t see it, open embriofficial.com in <b>Safari</b> and do it there.</div>';
+  if(ios)return li(['Tap the Share button '+SHARE+' at the bottom of Safari','Scroll down and tap <b>Add to Home Screen</b>','Tap <b>Add</b> (top right)']);
+  if(/SamsungBrowser/.test(ua))return li(['Tap the menu '+MENU+' at the bottom right','Tap <b>Add page to</b>','Choose <b>Home screen</b>, then <b>Add</b>']);
+  if(/Firefox/.test(ua))return li(['Tap the menu '+DOTS+' (top or bottom right)','Tap <b>Install</b> (or <b>Add to Home screen</b>)','Tap <b>Add</b> to confirm']);
+  if(/Android/.test(ua))return li(['Tap the menu '+DOTS+' at the top right','Tap <b>Add to Home screen</b> (or <b>Install app</b>)','If it asks, choose <b>Install</b> — not “Create shortcut”','Tap <b>Install</b> to confirm']);
+  return li(['Click the <b>install</b> icon at the right end of the address bar (Chrome or Edge)','Click <b>Install</b>'])+'<div class="install-note">On a Mac with Safari: <b>File → Add to Dock</b></div>';
+}
+function refreshInstallPanel(){
+  const h=document.getElementById('installHint');
+  if(h&&installPrompt)h.style.display='none';
+}
+function showInstallHint(html){
+  const h=document.getElementById('installHint');
+  h.innerHTML=html;h.style.display='block';
 }
 async function installApp(){
-  if(installPrompt){closeMenu();installPrompt.prompt();try{await installPrompt.userChoice;}catch(e){}installPrompt=null;return;}
-  openMenuInstallTip();
+  // 1) Phones that allow one-tap install (Chrome, Edge, Samsung on Android; Chrome/Edge on computers)
+  if(installPrompt){const pr=installPrompt;installPrompt=null;closeMenu();pr.prompt();try{await pr.userChoice;}catch(e){}return;}
+  const ua=navigator.userAgent, ios=/iPhone|iPad|iPod/.test(ua)||(/Macintosh/.test(ua)&&'ontouchend' in document);
+  const tok=localStorage.getItem('embri_token');
+  const target='embriofficial.com/?'+(tok?'unlock='+encodeURIComponent(tok)+'&':'')+'install=1';
+  // 2) Firefox on Android can't install web apps in one tap, so hand off to Chrome (already unlocked)
+  if(/Android/.test(ua)&&/Firefox/.test(ua)){
+    showInstallHint('Opening Chrome to finish installing…');
+    location.href='intent://'+target+'#Intent;scheme=https;package=com.android.chrome;end';
+    setTimeout(()=>showInstallHint('Tap the menu <span class="ic">&#8942;</span> then <b>Install</b>.'),1800);
+    return;
+  }
+  // 3) iPhone: Apple only allows adding from Safari's Share button
+  if(ios&&/CriOS|FxiOS|EdgiOS/.test(ua)){
+    showInstallHint('On iPhone, apps can only be added from <b>Safari</b>.<br>Tap Share <span class="ic">&#8679;</span> then <b>Add to Home Screen</b>, or open embriofficial.com in Safari.');
+    return;
+  }
+  if(ios){
+    showInstallHint('Apple needs one tap from you:<br>tap Share <span class="ic">&#8679;</span> in Safari, then <b>Add to Home Screen</b>.');
+    return;
+  }
+  // 4) Chrome that isn't ready for one-tap yet
+  if(/Android/.test(ua)){
+    showInstallHint('Tap the menu <span class="ic">&#8942;</span> at the top right, then <b>Install app</b>.<br><span style="color:#888;font-size:0.72rem">Or wait a few seconds and tap the green button again.</span>');
+    return;
+  }
+  showInstallHint('Click the <b>install</b> icon at the right end of the address bar.');
 }
 function openMenuInstallTip(afterUnlocking){
   document.getElementById('installTitle').textContent=afterUnlocking===true?'Get the Embri app':'Add Embri to your Home Screen';
-  document.getElementById('installSteps').innerHTML=(afterUnlocking===true?'Your album is unlocked. Keep it on your phone as an app: it opens unlocked and plays offline.<br><br>':'')+(installPrompt?'':installSteps());
-  document.getElementById('installNowRow').style.display=installPrompt?'flex':'none';
+  document.getElementById('installSteps').innerHTML='<div class="install-intro">'+(afterUnlocking===true?'Your album is unlocked. ':'')+'Keep Embri on your phone like an app. It opens already unlocked and plays with no signal.</div>';
+  document.getElementById('installHint').style.display='none';
   showMenuPanel('menuInstall');
   document.getElementById('trackMenu').classList.add('open');
 }
