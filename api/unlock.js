@@ -85,7 +85,7 @@ async function sendAlbumLink(email) {
         <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:24px;color:#111">
           <h2 style="margin:0 0 12px">Here's your album 🖤</h2>
           <p>Tap the button below on any phone, tablet, or computer to listen to all 12 tracks of <b>Evil Innocence</b>.</p>
-          <p style="margin:24px 0"><a href="${link}" style="background:#111;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none">Listen to the album</a></p>
+          <p style="margin:24px 0"><a href="${link}" style="display:inline-block;background:#1f8f4e;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none">Listen to the album</a></p>
           <p style="margin:0 0 8px"><a href="${appLink}" style="display:inline-block;background:#1f8f4e;color:#fff;padding:12px 20px;border-radius:6px;text-decoration:none">📱 Get the Embri app</a></p>
           <p style="font-size:13px;color:#666;margin:0 0 20px">Keep the album on your phone like an app. It opens already unlocked and plays offline.</p>
           <p style="font-size:13px;color:#666">It's your personal link, so save this email. Questions? Reply to hello@embriofficial.com.</p>
