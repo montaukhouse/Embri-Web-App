@@ -107,6 +107,28 @@ async function sendAlbumLink(email) {
   if (!r.ok) throw new Error(`Brevo ${r.status}: ${await r.text()}`);
 }
 
+// Everyone who bought the album (paid, completed Stripe checkouts), newest first, one entry per email
+async function allAlbumBuyers() {
+  const auth = { headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}` } };
+  const emails = new Set();
+  let after = '';
+  for (let page = 0; page < 20; page++) {
+    const q = new URLSearchParams({ status: 'complete', limit: '100' });
+    q.append('expand[]', 'data.line_items');
+    if (after) q.set('starting_after', after);
+    const r = await fetch(`https://api.stripe.com/v1/checkout/sessions?${q}`, auth);
+    if (!r.ok) break;
+    const list = await r.json();
+    for (const s of list.data) {
+      const email = (s.customer_details?.email || '').trim().toLowerCase();
+      if (email && s.payment_status === 'paid' && isAlbum(s)) emails.add(email);
+    }
+    if (!list.has_more || !list.data.length) break;
+    after = list.data[list.data.length - 1].id;
+  }
+  return [...emails];
+}
+
 function isAlbum(session) {
   return (session.line_items?.data || []).some((item) => {
     const name = (item.description || '').toLowerCase().trim();
@@ -228,6 +250,21 @@ export default async function handler(req, res) {
         }
       }
       return res.status(200).json({ ok: true, token: makeToken(email), code: await rememberSharer(email) });
+    }
+
+    // Admin page: send every past album buyer the album email (with their rewards share link), once each
+    if (body.action === 'buyers-preview' || body.action === 'buyers-send') {
+      if (!process.env.ADMIN_PASSWORD || body.password !== process.env.ADMIN_PASSWORD) return res.status(401).json({ ok: false });
+      const buyers = await allAlbumBuyers();
+      const sentFlags = buyers.length ? await redis.mget(...buyers.map((e) => `resent:${e}`)) : [];
+      const todo = buyers.filter((_, i) => !sentFlags[i]);
+      if (body.action === 'buyers-preview') return res.status(200).json({ ok: true, buyers: buyers.length, notYetSent: todo.length });
+      let sent = 0, failed = 0;
+      for (const email of todo) {
+        try { await sendAlbumLink(email); await redis.set(`resent:${email}`, new Date().toISOString()); await rememberSharer(email); sent++; }
+        catch (e) { console.error('resend failed', email, e); failed++; }
+      }
+      return res.status(200).json({ ok: true, sent, failed, alreadySent: buyers.length - todo.length });
     }
 
     if (body.action === 'songs') {
