@@ -378,6 +378,16 @@ body{background:#f8f7f5;color:#111;font-family:'DM Sans',sans-serif;font-weight:
       <div class="section-title">Most shared songs</div>
       <div class="songs-list" id="shSongList"><div class="song-row"><div class="song-info"><div class="song-plays">No shares yet.</div></div></div></div>
       <div class="empty-note" id="shNote" style="display:none"></div>
+      <div class="section-title">Email past album buyers</div>
+      <div class="chart-card" style="font-size:0.72rem;color:#555;line-height:1.6">
+        Sends every album buyer the album email with their personal share link and the rewards. Each buyer gets it once, even if you press it again. Merch orders are never touched.
+        <div style="margin-top:0.8rem;display:flex;gap:0.5rem;flex-wrap:wrap">
+          <button class="login-btn" style="margin:0;padding:0.7rem 1rem" onclick="buyersPreview()">Check how many</button>
+          <button class="login-btn" id="buyersSendBtn" style="margin:0;padding:0.7rem 1rem;background:#1f8f4e;display:none" onclick="buyersSend()">Send now</button>
+        </div>
+        <div id="buyersMsg" style="margin-top:0.6rem;color:#111"></div>
+      </div>
+
     </div>
 
   </div>
@@ -388,6 +398,30 @@ body{background:#f8f7f5;color:#111;font-family:'DM Sans',sans-serif;font-weight:
 const ADMIN_PASSWORD = "embri2026";
 let adminPw = '';
 
+// Email past album buyers (once each)
+async function buyersCall(action){
+  const r=await fetch('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,password:adminPw})});
+  if(r.status===401)throw new Error('Set ADMIN_PASSWORD in Vercel to the same password you use here.');
+  const d=await r.json();if(!d.ok)throw new Error('Something went wrong. Try again.');return d;
+}
+async function buyersPreview(){
+  const m=document.getElementById('buyersMsg'),b=document.getElementById('buyersSendBtn');
+  m.textContent='Checking Stripe\u2026';b.style.display='none';
+  try{const d=await buyersCall('buyers-preview');
+    m.textContent=d.buyers+' album buyer'+(d.buyers===1?'':'s')+' found. '+d.notYetSent+' haven\u2019t been sent this email yet.';
+    if(d.notYetSent>0){b.style.display='inline-block';b.textContent='Send to '+d.notYetSent;}
+  }catch(e){m.textContent=e.message;}
+}
+async function buyersSend(){
+  const m=document.getElementById('buyersMsg'),b=document.getElementById('buyersSendBtn');
+  if(!confirm('Send the album email to these buyers now?'))return;
+  b.disabled=true;m.textContent='Sending\u2026 (keep this page open)';
+  try{const d=await buyersCall('buyers-send');
+    m.textContent='Sent '+d.sent+(d.failed?' \u00b7 '+d.failed+' failed (press Check again to retry)':'')+(d.alreadySent?' \u00b7 '+d.alreadySent+' already had it':'')+'.';
+    b.style.display='none';
+  }catch(e){m.textContent=e.message;}
+  b.disabled=false;
+}
 // Which share rewards someone has earned
 function rewardsText(x){
   const e=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
