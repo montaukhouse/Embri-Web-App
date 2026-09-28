@@ -149,6 +149,7 @@ body{background:#f8f7f5;color:#111;font-family:'DM Sans',sans-serif;font-weight:
         <div class="stat-card highlight">
           <div class="stat-num">$0.00</div>
           <div class="stat-label">Total Revenue</div>
+          <div class="stat-change" id="revSplit"></div>
         </div>
         <div class="stat-card">
           <div class="stat-num">0</div>
@@ -398,6 +399,33 @@ body{background:#f8f7f5;color:#111;font-family:'DM Sans',sans-serif;font-weight:
 const ADMIN_PASSWORD = "embri2026";
 let adminPw = '';
 
+// Real sales from Stripe (revenue, albums, merch, orders, 7-day chart)
+async function loadSales(){
+  try{
+    const r=await fetch('/api/sales',{headers:{'x-admin-password':adminPw}});
+    if(!r.ok)return;
+    const d=await r.json();if(!d.ok)return;
+    const money=v=>'$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const nums=document.querySelectorAll('.stat-num');
+    nums[0].textContent=money(d.revenue);
+    nums[2].textContent=d.albumsSold;
+    nums[3].textContent=d.merchSold;
+    if(nums[7])nums[7].textContent=d.albumsSold;
+    document.getElementById('revSplit').textContent='Album '+money(d.albumRevenue)+' \u00b7 Merch '+money(d.merchRevenue)+' \u00b7 before Stripe fees';
+    const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    const row=o=>'<div class="order-row">'+
+      '<div class="order-icon">'+(o.type==='album'?'&#127925;':'&#128085;')+'</div>'+
+      '<div class="order-info"><div class="order-name">'+esc(o.item)+(o.size?' \u00b7 '+esc(o.size):'')+'</div>'+
+      '<div class="order-detail">'+esc(o.email)+' \u00b7 '+new Date(o.date).toLocaleDateString()+(o.discount?' \u00b7 code \u2212$'+o.discount.toFixed(2):'')+'</div></div>'+
+      '<div class="order-amount">'+money(o.amount)+'</div>'+
+      '<div class="order-status">Paid</div></div>';
+    const lists=document.querySelectorAll('.orders-list');
+    const empty='<div class="order-row"><div class="order-info"><div class="order-detail">No orders yet.</div></div></div>';
+    if(lists[0])lists[0].innerHTML=d.orders.length?d.orders.slice(0,5).map(row).join(''):empty;
+    if(lists[1])lists[1].innerHTML=d.orders.length?d.orders.map(row).join(''):empty;
+    buildChartFromOrders(d.orders.map(o=>({date:o.date,price:o.amount})));
+  }catch(err){console.error('Could not load sales:',err);}
+}
 // Email past album buyers (once each)
 async function buyersCall(action){
   const r=await fetch('/api/unlock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,password:adminPw})});
@@ -574,6 +602,7 @@ function loadRealData(){
 
   loadGlobalStats();
   loadShareStats();
+  loadSales();
 }
 
 // Pull play counts from Redis (all listeners), overriding local-only numbers
